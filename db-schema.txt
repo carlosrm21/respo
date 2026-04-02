@@ -1,0 +1,61 @@
+TABLAS: _migration_check, audit_log, caja, categorias, combo_items, combos, detalles_pedido, facturas, inventario, mesas, meseros, pedidos, pedidos_delivery, productos, reservas, sqlite_sequence, turnos
+
+TABLA _migration_check: id(INTEGER)
+  Registros: 0
+
+TABLA audit_log: id(INTEGER), usuario(TEXT), accion(TEXT), entidad(TEXT), detalle(TEXT), fecha(DATETIME)
+  Registros: 0
+
+TABLA caja: id(INTEGER), fecha_apertura(DATETIME), monto_apertura(REAL), mesero_id_apertura(INTEGER), fecha_cierre(DATETIME), monto_cierre(REAL), ventas_esperadas(REAL), estado(TEXT)
+  Registros: 1
+  Ejemplo: {"id":1,"fecha_apertura":"2026-03-10 05:01:17","monto_apertura":50000,"mesero_id_apertura":1,"fecha_cierre":null,"monto_cierre":null,"ventas_esperadas":0,"estado":"abierta"}
+
+TABLA categorias: id(INTEGER), nombre(TEXT)
+  Registros: 2
+  Ejemplo: {"id":1,"nombre":"Bebidas"}
+
+TABLA combo_items: id(INTEGER), combo_id(INTEGER), producto_id(INTEGER), cantidad(INTEGER)
+  Registros: 2
+  Ejemplo: {"id":1,"combo_id":1,"producto_id":1,"cantidad":1}
+
+TABLA combos: id(INTEGER), nombre(TEXT), descripcion(TEXT), precio_especial(REAL), activo(INTEGER)
+  Registros: 1
+  Ejemplo: {"id":1,"nombre":"Combo Clásico","descripcion":"Plato + Bebida","precio_especial":null,"activo":1}
+
+TABLA detalles_pedido: id(INTEGER), pedido_id(INTEGER), producto_id(INTEGER), cantidad(INTEGER), precio_unitario(REAL), notas(TEXT), estado(TEXT)
+  Registros: 27
+  Ejemplo: {"id":1,"pedido_id":1,"producto_id":3,"cantidad":1,"precio_unitario":25000,"notas":null,"estado":"pendiente"}
+
+TABLA facturas: id(INTEGER), pedido_id(INTEGER), numero_dian(TEXT), total(REAL), metodo_pago(TEXT), xml_dian(TEXT), estado_dian(TEXT), fecha_emision(DATETIME), descuento(REAL), descuento_tipo(TEXT), nota_descuento(TEXT)
+  Registros: 20
+  Ejemplo: {"id":1,"pedido_id":1,"numero_dian":"FACT-7333","total":27000,"metodo_pago":"Efectivo","xml_dian":null,"estado_dian":"enviado","fecha_emision":"2026-03-10 03:16:20","descuento":0,"descuento_tipo":"porcentaje","nota_descuento":null}
+
+TABLA inventario: id(INTEGER), nombre(TEXT), categoria(TEXT), unidad(TEXT), cantidad(REAL), cantidad_minima(REAL), costo_unitario(REAL), proveedor(TEXT), fecha_actualizacion(DATETIME)
+  Registros: 19
+  Ejemplo: {"id":1,"nombre":"Carne de Res (Hamburguesa)","categoria":"Carnes","unidad":"kg","cantidad":10,"cantidad_minima":3,"costo_unitario":22000,"proveedor":"Carnes del Valle","fecha_actualizacion":"2026-03-10 04:25:07"}
+
+TABLA mesas: id(INTEGER), numero(INTEGER), capacidad(INTEGER), estado(TEXT)
+  Registros: 10
+  Ejemplo: {"id":1,"numero":1,"capacidad":2,"estado":"disponible"}
+
+TABLA meseros: id(INTEGER), nombre(TEXT), pin(TEXT), activo(INTEGER)
+  Registros: 2
+  Ejemplo: {"id":1,"nombre":"Carlos","pin":null,"activo":1}
+
+TABLA pedidos: id(INTEGER), mesa_id(INTEGER), mesero_id(INTEGER), estado(TEXT), fecha_creacion(DATETIME), fecha_servido(DATETIME), minutos_servicio(INTEGER)
+  Registros: 20
+  Ejemplo: {"id":1,"mesa_id":1,"mesero_id":1,"estado":"pagado","fecha_creacion":"2026-03-10 03:15:54","fecha_servido":null,"minutos_servicio":null}
+
+TABLA pedidos_delivery: id(INTEGER), plataforma(TEXT), external_id(TEXT), cliente_nombre(TEXT), cliente_direccion(TEXT), items_json(TEXT), total(REAL), estado(TEXT), notas(TEXT), fecha_creacion(DATETIME)
+  Registros: 0
+
+TABLA productos: id(INTEGER), categoria_id(INTEGER), nombre(TEXT), descripcion(TEXT), precio(REAL), disponible(INTEGER), imagen_url(TEXT)
+  Registros: 4
+  Ejemplo: {"id":1,"categoria_id":1,"nombre":"Coca Cola","descripcion":null,"precio":3500,"disponible":1,"imagen_url":null}
+
+TABLA reservas: id(INTEGER), nombre(TEXT), telefono(TEXT), fecha(DATE), hora(TEXT), personas(INTEGER), mesa_id(INTEGER), estado(TEXT), notas(TEXT), fecha_creacion(DATETIME)
+  Registros: 0
+
+TABLA turnos: id(INTEGER), mesero_id(INTEGER), fecha(DATE), hora_entrada(TEXT), hora_salida(TEXT), notas(TEXT), estado(TEXT)
+  Registros: 0
+

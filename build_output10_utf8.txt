@@ -1,0 +1,227 @@
+﻿
+> restaurante-web@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.3.0
+
+   Creating an optimized production build ...
+node.exe : Failed to compile.
+En línea: 1 Carácter: 1
++ & "C:\Program 
+Files\nodejs/node.exe" "C:\Users
+\carlos\AppData\Roaming ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo          : N 
+   otSpecified: (Failed to com  
+  pile.:String) [], RemoteExc   
+ eption
+    + FullyQualifiedErrorId : N 
+   ativeCommandError
+ 
+
+./src/app/actions/kds.ts
+Error:   [31mx[0m Expected 
+',', got ':'
+    ,-[[36;1;4mE:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\src\app\actions\kds.t
+s[0m:53:1]
+ [2m50[0m |       JOIN 
+productos pr ON dp.producto_id 
+= pr.id
+ [2m51[0m |       WHERE 
+p.mesero_id = ? AND p.estado = 
+'abierto'
+ [2m52[0m |       ORDER BY 
+p.fecha_creacion ASC
+ [2m53[0m |     `, args: 
+[meseroId] })).rows;
+    : [35;1m           ^[0m
+ [2m54[0m |     return { 
+success: true, data };
+ [2m55[0m |   } catch (e: 
+any) { return { success: false, 
+data: [] }; }
+ [2m55[0m | }
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./src/app/actions/kds.ts
+./src/components/KDSPanel.tsx
+
+./src/app/actions/reportes.ts
+Error:   [31mx[0m Expected 
+',', got ';'
+    ,-[[36;1;4mE:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\src\app\actions\repor
+tes.ts[0m:43:1]
+ [2m40[0m |       GROUP BY 
+p.id
+ [2m41[0m |       ORDER BY 
+utilidad DESC
+ [2m42[0m |       LIMIT 5
+ [2m43[0m |     `).all();
+    : [35;1m            ^[0m
+ [2m44[0m | 
+ [2m45[0m |     // Average 
+service time
+ [2m45[0m |     const 
+avgServicio = (await 
+db.execute(`
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./src/app/actions/reportes.ts
+./src/components/PLReport.tsx
+./src/app/HomeClient.tsx
+
+./src/app/actions/reservas.ts
+Error:   [31mx[0m Expected 
+',', got ')'
+    ,-[[36;1;4mE:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\src\app\actions\reser
+vas.ts[0m:20:1]
+ [2m17[0m |     const result 
+= (await db.execute({ sql: `
+ [2m18[0m |       INSERT INTO 
+reservas (nombre, telefono, 
+fecha, hora, personas, mesa_id, 
+notas)
+ [2m19[0m |       VALUES (?, 
+?, ?, ?, ?, ?, ?)
+ [2m20[0m |     
+`).run(data.nombre, 
+data.telefono || null, 
+data.fecha, data.hora, 
+data.personas, data.mesa_id || 
+null, data.notas || null);
+    : [35;1m     ^[0m
+ [2m21[0m |     // If mesa 
+assigned, mark as reserved
+ [2m22[0m |     if 
+(data.mesa_id) {
+ [2m22[0m |       (await 
+db.execute(`UPDATE mesas SET 
+estado = 'reservada' WHERE id = 
+?`).run(data.mesa_id);
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./src/app/actions/reservas.ts
+./src/components/Reservas.tsx
+./src/app/HomeClient.tsx
+
+./src/app/actions/turnos.ts
+Error:   [31mx[0m Expected 
+',', got ')'
+    ,-[[36;1;4mE:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\src\app\actions\turno
+s.ts[0m:22:1]
+ [2m19[0m |     // Check if 
+already has an active turno 
+today
+ [2m20[0m |     const 
+existing = (await db.execute({ 
+sql: `SELECT id FROM turnos 
+WHERE mesero_id = ? AND fecha = 
+? AND estado = 'activo'`, args: 
+[meseroId, fechaHoy] 
+})).rows[0];
+ [2m21[0m |     if (existing) 
+return { success: false, error: 
+'Ya tiene un turno activo hoy' 
+};
+ [2m22[0m |     const result 
+= (await db.execute({ sql: 
+`INSERT INTO turnos (mesero_id, 
+fecha, hora_entrada, notas) 
+VALUES (?, ?, ?, 
+?)`).run(meseroId, fechaHoy, 
+horaAhora, notas || null);
+    : [35;1m                   
+                                
+                                
+                                
+         ^[0m
+ [2m23[0m |     
+revalidatePath('/');
+ [2m24[0m |     return { 
+success: true, id: 
+result.lastInsertRowid };
+ [2m24[0m |   } catch (e: 
+any) { return { success: false, 
+error: e.message }; }
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./src/app/actions/turnos.ts
+./src/components/Turnos.tsx
+./src/app/HomeClient.tsx
+
+./src/app/api/delivery/route.ts
+Error:   [31mx[0m Expected 
+',', got ';'
+    ,-[[36;1;4mE:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\src\app\api\delivery\
+route.ts[0m:17:1]
+ [2m14[0m |     (await 
+db.execute(`
+ [2m15[0m |       INSERT INTO 
+pedidos_delivery (plataforma, 
+external_id, cliente_nombre, 
+cliente_direccion, items_json, 
+total, notas)
+ [2m16[0m |       VALUES (?, 
+?, ?, ?, ?, ?, ?)
+ [2m17[0m |     
+`).run(plataforma, 
+body.order_id || null, 
+body.cliente || 'Cliente 
+delivery', body.direccion || 
+'', itemsJson, total, 
+body.notas || null);
+    : [35;1m                   
+                                
+                                
+                                
+                          ^[0m
+ [2m18[0m | 
+ [2m19[0m |     await 
+addAuditLog('sistema', 'pedido 
+delivery recibido', plataforma, 
+`ID externo: ${body.order_id}`);
+ [2m19[0m | 
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./src/app/api/delivery/route.ts
+
+
+> Build failed because of 
+webpack errors

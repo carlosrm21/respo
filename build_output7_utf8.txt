@@ -1,0 +1,73 @@
+﻿
+> restaurante-web@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.3.0
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully in 1000ms
+   Skipping validation of types
+   Skipping linting
+   Collecting page data ...
+node.exe : TypeError: r(...) is 
+not a constructor
+En línea: 1 Carácter: 1
++ & "C:\Program 
+Files\nodejs/node.exe" "C:\Users
+\carlos\AppData\Roaming ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo          : N 
+   otSpecified: (TypeError: r(  
+  ...) is not a constructor:S   
+ tring) [], RemoteException
+    + FullyQualifiedErrorId : N 
+   ativeCommandError
+ 
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+setup-db\route.js:1:454)
+    at 5069 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+setup-db\route.js:89:2282)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\webpack-runtime.js:1:14
+3)
+    at 21071 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+setup-db\route.js:89:2634)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\webpack-runtime.js:1:14
+3)
+    at a (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\app\api\setup-db\route.
+js:213:2312)
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+setup-db\route.js:213:2343)
+    at t.X (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\webpack-
+runtime.js:1:1285)
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+setup-db\route.js:213:2325)
+    at Object.<anonymous> 
+(E:\APP INVENTARIO\app restauran
+te\restaurante-web\.next\server\
+app\api\setup-db\route.js:213:23
+71)
+
+> Build error occurred
+[Error: Failed to collect page 
+data for /api/setup-db] { type: 
+'Error' }

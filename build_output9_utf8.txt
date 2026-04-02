@@ -1,0 +1,226 @@
+﻿
+> restaurante-web@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.3.0
+
+   Creating an optimized production build ...
+node.exe : Failed to compile.
+En línea: 1 Carácter: 1
++ & "C:\Program 
+Files\nodejs/node.exe" "C:\Users
+\carlos\AppData\Roaming ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo          : N 
+   otSpecified: (Failed to com  
+  pile.:String) [], RemoteExc   
+ eption
+    + FullyQualifiedErrorId : N 
+   ativeCommandError
+ 
+
+./src/app/actions/analytics.ts
+Error:   [31mx[0m Expected 
+',', got ';'
+    ,-[[36;1;4mE:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\src\app\actions\analy
+tics.ts[0m:44:1]
+ [2m41[0m |       WHERE 
+DATE(f.fecha_emision) >= 
+DATE('now', '-6 days', 
+'localtime')
+ [2m42[0m |       GROUP BY dia
+ [2m43[0m |       ORDER BY 
+dia ASC
+ [2m44[0m |     `).all();
+    : [35;1m            ^[0m
+ [2m45[0m |     return { 
+success: true, data };
+ [2m46[0m |   } catch (e: 
+any) { return { success: false, 
+error: e.message }; }
+ [2m46[0m | }
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./src/app/actions/analytics.ts
+./src/components/AnalyticsDashbo
+ard.tsx
+./src/app/HomeClient.tsx
+
+./src/app/actions/auditlog.ts
+Error:   [31mx[0m Expected 
+',', got ')'
+   ,-[[36;1;4mE:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\src\app\actions\audit
+log.ts[0m:6:1]
+ [2m3[0m | 
+ [2m4[0m | export async 
+function addAuditLog(usuario: 
+string, accion: string, 
+entidad?: string, detalle?: 
+string) {
+ [2m5[0m |   try {
+ [2m6[0m |     (await 
+db.execute({ sql: 'INSERT INTO 
+audit_log (usuario, accion, 
+entidad, detalle) VALUES (?, ?, 
+?, ?)').run(usuario, accion, 
+entidad || null, detalle || 
+null);
+   : [35;1m                    
+                                
+                                
+                        ^[0m
+ [2m7[0m |   } catch {} // 
+silently fail if table doesn't 
+exist yet
+ [2m8[0m | }
+ [2m8[0m | 
+   `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./src/app/actions/auditlog.ts
+./src/components/AuditLog.tsx
+./src/app/HomeClient.tsx
+
+./src/app/actions/combos.ts
+Error:   [31mx[0m Expected 
+',', got ')'
+    ,-[[36;1;4mE:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\src\app\actions\combo
+s.ts[0m:18:1]
+ [2m15[0m | export async 
+function addCombo(nombre: 
+string, descripcion: string, 
+items: { producto_id: number; 
+cantidad: number }[], 
+precio_especial?: number) {
+ [2m16[0m |   try {
+ [2m17[0m |     const comboId 
+= (await db.execute({ sql: 
+'INSERT INTO combos (nombre, 
+descripcion, precio_especial) 
+VALUES (?, ?, ?)', args: 
+[nombre, descripcion, 
+precio_especial || null] 
+})).lastInsertRowid;
+ [2m18[0m |     const ins = 
+(await db.execute({ sql: 
+'INSERT INTO combo_items 
+(combo_id, producto_id, 
+cantidad) VALUES (?, ?, ?)');
+    : [35;1m                   
+                                
+                                
+                                
+  ^[0m
+ [2m19[0m |     
+db.transaction(() => { 
+items.forEach(i => 
+ins.run(comboId, i.producto_id, 
+i.cantidad)); })();
+ [2m20[0m |     return { 
+success: true, id: comboId };
+ [2m20[0m |   } catch (e: 
+any) { return { success: false, 
+error: e.message }; }
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./src/app/actions/combos.ts
+./src/app/HomeClient.tsx
+
+./src/app/actions/historial.ts
+Error:   [31mx[0m Expected 
+',', got ';'
+    ,-[[36;1;4mE:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\src\app\actions\histo
+rial.ts[0m:31:1]
+ [2m28[0m |       GROUP BY 
+f.id
+ [2m29[0m |       ORDER BY 
+f.fecha_emision DESC
+ [2m30[0m |       LIMIT 200
+ [2m31[0m |     
+`).all(...params);
+    : [35;1m                   
+  ^[0m
+ [2m32[0m | 
+ [2m33[0m |     return { 
+success: true, data };
+ [2m33[0m |   } catch (e: 
+any) { return { success: false, 
+data: [], error: e.message }; }
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./src/app/actions/historial.ts
+./src/components/HistorialFactur
+as.tsx
+./src/app/HomeClient.tsx
+
+./src/app/actions/kds.ts
+Error:   [31mx[0m Expected 
+',', got ')'
+    ,-[[36;1;4mE:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\src\app\actions\kds.t
+s[0m:37:1]
+ [2m34[0m | 
+ [2m35[0m | export async 
+function 
+updateItemEstado(detalleId: 
+number, estado: 'pendiente' | 
+'cocinando' | 'servido') {
+ [2m36[0m |   try {
+ [2m37[0m |     (await 
+db.execute({ sql: 'UPDATE 
+detalles_pedido SET estado = ? 
+WHERE id = ?').run(estado, 
+detalleId);
+    : [35;1m                   
+                                
+                              
+^[0m
+ [2m38[0m |     return { 
+success: true };
+ [2m39[0m |   } catch (e: 
+any) { return { success: false, 
+error: e.message }; }
+ [2m39[0m | }
+    `----
+
+Caused by:
+    Syntax Error
+
+Import trace for requested 
+module:
+./src/app/actions/kds.ts
+./src/components/KDSPanel.tsx
+
+
+> Build failed because of 
+webpack errors
