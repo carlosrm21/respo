@@ -5,12 +5,6 @@ import { checkAdminExists, createInitialAdmin, loginAdmin } from '@/app/actions/
 
 type Role = 'admin' | 'waiter' | 'kitchen';
 
-const PINS: Record<Role, string[]> = {
-  admin:   ['1234', '0000'],
-  waiter:  ['1234', '0000'],
-  kitchen: ['5678', '0000'],
-};
-
 const ROLES = [
   {
     id: 'admin' as Role,
@@ -91,12 +85,13 @@ export default function Login({ onLogin, restaurantName }: { onLogin: (role: Rol
       return;
     }
 
-    await new Promise(r => setTimeout(r, 600));
-    const validPins = PINS[selectedRole!] || [];
-    if (validPins.includes(pin)) {
+    const { loginWithPin } = await import('@/app/actions/auth');
+    const authRes = await loginWithPin(selectedRole!, pin);
+    
+    if (authRes.success) {
       onLogin(selectedRole!);
     } else {
-      setError(selectedRole === 'kitchen' ? 'PIN incorrecto. Prueba: 5678' : 'PIN incorrecto. Prueba: 1234');
+      setError(authRes.message || 'PIN incorrecto o licencia inactiva. Verifica la base de datos.');
       setPin('');
     }
     setLoading(false);
@@ -285,7 +280,7 @@ export default function Login({ onLogin, restaurantName }: { onLogin: (role: Rol
   }
 
   const roleLabel = selectedRole === 'admin' ? 'Administrador' : selectedRole === 'waiter' ? 'Mesero' : 'Cocina';
-  const roleHint = selectedRole === 'kitchen' ? 'PIN: 5678' : 'PIN: 1234';
+  const roleHint = selectedRole === 'kitchen' ? 'PIN de Cocina del sistema' : 'PIN de Mesero asignado';
 
   return (
     <div style={{ background: '#09090b', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', position: 'relative', overflow: 'hidden' }}>
