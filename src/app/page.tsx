@@ -1,13 +1,11 @@
-import { getMesas } from './actions/mesas';
-import { getProductos } from './actions/pedido';
-import HomeClient from './HomeClient';
+import LandingUI from '@/components/LandingUI';
+import { Metadata } from 'next';
 
-export default async function Home() {
-  const mesasResult = await getMesas();
-  const productosResult = await getProductos();
+export const metadata: Metadata = {
+  title: "Software POS para Restaurantes — RestoPOS SaaS",
+  description: "Sistema premium de punto de venta, toma de pedidos para meseros, comandas en cocina y facturación electrónica.",
+};
 
-  const mesas = mesasResult.success ? mesasResult.data as any[] : [];
-  const productos = productosResult.success ? productosResult.data as any[] : [];
-
-  return <HomeClient mesas={mesas} productos={productos} />;
+export default function Home() {
+  return <LandingUI />;
 }
