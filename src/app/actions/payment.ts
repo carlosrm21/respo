@@ -7,9 +7,13 @@ const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN || '',
 });
 
-export async function createPaymentPreference() {
+export async function createPaymentPreference(formData?: { restaurantName: string; nit: string; email: string; phone: string }) {
   if (!process.env.MP_ACCESS_TOKEN) {
-    throw new Error('El token de MercadoPago no está configurado en las variables de entorno.');
+    console.error('El token de MercadoPago no está configurado en las variables de entorno.');
+    return {
+      success: false,
+      error: 'El token de MercadoPago no está configurado en las variables de entorno.',
+    };
   }
 
   try {
@@ -36,6 +40,13 @@ export async function createPaymentPreference() {
         },
         auto_return: 'approved',
         statement_descriptor: 'RESTOPOS',
+        notification_url: `${baseUrl}/api/webhooks/mercadopago`,
+        metadata: formData ? {
+          restaurant_name: formData.restaurantName,
+          nit: formData.nit,
+          contact_email: formData.email,
+          contact_phone: formData.phone
+        } : undefined,
       },
     });
 

@@ -1,8 +1,31 @@
 'use client';
 import { useState } from 'react';
-import { ChefHat, ArrowRight, LayoutGrid, Users, UtensilsCrossed, Sparkles, CheckCircle2, ShieldCheck, Zap, Smartphone, Receipt, Package, Star, MessageCircle, ChevronDown, Quote } from 'lucide-react';
+import { ChefHat, ArrowRight, LayoutGrid, Users, UtensilsCrossed, Sparkles, CheckCircle2, ShieldCheck, Zap, Smartphone, Receipt, Package, Star, MessageCircle, ChevronDown, Quote, Loader2, X } from 'lucide-react';
+import { createPaymentPreference } from '@/app/actions/payment';
 
 export default function LandingUI() {
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({ restaurantName: '', nit: '', email: '', phone: '' });
+
+  const handlePaymentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsProcessingPayment(true);
+      const result = await createPaymentPreference(formData);
+      if (result?.success && result?.initPoint) {
+        window.location.href = result.initPoint;
+      } else {
+        alert("Ocurrió un error al generar la orden de pago. Verifica tu conexión e inténtalo de nuevo.");
+        setIsProcessingPayment(false);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error inesperado al conectar con el servidor de pagos.");
+      setIsProcessingPayment(false);
+    }
+  };
+
   const features = [
     {
       icon: LayoutGrid,
@@ -245,9 +268,13 @@ export default function LandingUI() {
             </p>
           </div>
 
-          <a href="https://www.movilcomts.com" target="_blank" rel="noopener noreferrer" aria-label="Comprar Plan Anual" className="btn-primary" style={{ display: 'block', padding: '16px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', borderRadius: '12px', textDecoration: 'none', fontWeight: 600, fontSize: 16 }}>
+          <button 
+            onClick={() => setShowModal(true)} 
+            aria-label="Comprar Plan Anual" 
+            className="btn-primary" 
+            style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '16px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 16 }}>
             Contratar Plan Anual
-          </a>
+          </button>
         </div>
       </section>
 
@@ -355,6 +382,51 @@ export default function LandingUI() {
           <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>© {new Date().getFullYear()} RestoPOS SaaS. Todos los derechos reservados.</p>
         </div>
       </footer>
+
+      {/* Onboarding Modal */}
+      {showModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '24px' }}>
+          <div className="anim-fade-up" style={{ background: '#18181b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 24, width: '100%', maxWidth: 480, overflow: 'hidden' }}>
+            <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: '#f8fafc', marginBottom: 4 }}>Crear tu cuenta</h3>
+                <p style={{ color: '#94a3b8', fontSize: 14, margin: 0 }}>Completa estos datos antes del pago para configurar tu sistema.</p>
+              </div>
+              <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: '#a1a1aa', cursor: 'pointer', padding: 4 }}>
+                <X size={24} />
+              </button>
+            </div>
+            <form onSubmit={handlePaymentSubmit} style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
+                <div>
+                  <label htmlFor="restaurantName" style={{ display: 'block', color: '#cbd5e1', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Nombre del Restaurante *</label>
+                  <input required id="restaurantName" type="text" value={formData.restaurantName} onChange={e => setFormData({...formData, restaurantName: e.target.value})} placeholder="Ej. Pizzería La Mamma" style={{ width: '100%', background: '#27272a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 16px', color: '#fff', fontSize: 15 }} />
+                </div>
+                <div>
+                  <label htmlFor="nit" style={{ display: 'block', color: '#cbd5e1', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>NIT / Documento Identidad *</label>
+                  <input required id="nit" type="text" value={formData.nit} onChange={e => setFormData({...formData, nit: e.target.value})} placeholder="Ej. 900.123.456-7" style={{ width: '100%', background: '#27272a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 16px', color: '#fff', fontSize: 15 }} />
+                </div>
+                <div>
+                  <label htmlFor="email" style={{ display: 'block', color: '#cbd5e1', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Correo Electrónico *</label>
+                  <input required id="email" type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="gerencia@restaurante.com" style={{ width: '100%', background: '#27272a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 16px', color: '#fff', fontSize: 15 }} />
+                </div>
+                <div>
+                  <label htmlFor="phone" style={{ display: 'block', color: '#cbd5e1', fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Teléfono Movil *</label>
+                  <input required id="phone" type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+57 300 000 0000" style={{ width: '100%', background: '#27272a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '12px 16px', color: '#fff', fontSize: 15 }} />
+                </div>
+              </div>
+              
+              <button 
+                type="submit"
+                disabled={isProcessingPayment}
+                className="btn-primary" 
+                style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '16px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', borderRadius: '12px', border: 'none', cursor: isProcessingPayment ? 'not-allowed' : 'pointer', fontWeight: 600, fontSize: 16, opacity: isProcessingPayment ? 0.7 : 1 }}>
+                {isProcessingPayment ? <><Loader2 size={20} className="animate-spin" style={{ marginRight: 8 }} /> Procesando pago...</> : 'Continuar al pago seguro'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

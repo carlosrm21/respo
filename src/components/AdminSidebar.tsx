@@ -29,9 +29,10 @@ interface Props {
   activeSection: string;
   onSectionChange: (s: string) => void;
   onLogout: () => void;
+  restaurantName?: string;
 }
 
-export default function AdminSidebar({ activeSection, onSectionChange, onLogout }: Props) {
+export default function AdminSidebar({ activeSection, onSectionChange, onLogout, restaurantName }: Props) {
   return (
     <aside style={{ width: 224, background: 'var(--surface)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', height: '100vh', flexShrink: 0 }}>
       {/* Logo */}
@@ -40,7 +41,7 @@ export default function AdminSidebar({ activeSection, onSectionChange, onLogout 
           <ChefHat size={16} color="white" />
         </div>
         <div>
-          <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: '-0.02em', lineHeight: 1.2 }}>RestoPOS</div>
+          <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: '-0.02em', lineHeight: 1.2 }}>{restaurantName || 'RestoPOS'}</div>
           <div style={{ fontSize: 10, color: 'var(--text-3)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>Admin</div>
         </div>
       </div>

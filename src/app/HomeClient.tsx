@@ -6,6 +6,7 @@ import FacturacionModal from '@/components/Facturacion';
 import CajaControl from '@/components/CajaControl';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import Login from '@/components/Login';
+import SecurityModule from '@/components/SecurityModule';
 import AdminSidebar from '@/components/AdminSidebar';
 import ProductManagement from '@/components/ProductManagement';
 import Inventario from '@/components/Inventario';
@@ -23,6 +24,7 @@ import KDSPanel from '@/components/KDSPanel';
 import { submitOrder } from './actions/pedido';
 import { getEstadoCaja } from './actions/caja';
 import { getCombos } from './actions/combos';
+import { createPaymentPreference } from '@/app/actions/payment';
 import { usePushNotifications, sendPushNotification } from '@/hooks/usePushNotifications';
 import { useTheme } from '@/hooks/useTheme';
 import {
@@ -46,10 +48,41 @@ const SECTION_LABELS: Record<string, string> = {
   delivery: 'Pedidos Delivery',
   fe: 'Facturación Electrónica',
   ticket: 'Configuración Ticket POS',
+  security: 'Seguridad y 2FA',
 };
 
-export default function HomeClient({ mesas, productos }: { mesas: any[], productos: any[] }) {
+function PaywallView({ restaurantName, daysRemaining }: { restaurantName?: string, daysRemaining?: number }) {
+  const [loading, setLoading] = useState(false);
+  return (
+    <div style={{ maxWidth: 420, textAlign: 'center', background: 'var(--surface)', padding: 32, borderRadius: 24, border: '1px solid rgba(239, 68, 68, 0.3)', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}>
+      <div style={{ width: 64, height: 64, background: 'rgba(239, 68, 68, 0.1)', color: 'var(--red)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+         <LogOut size={32} />
+      </div>
+      <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>Acceso Suspendido</h2>
+      <p style={{ color: 'var(--text-3)', fontSize: 15, marginBottom: 24, lineHeight: 1.5 }}>
+        La licencia anual para <strong>{restaurantName || 'RestoPOS'}</strong> ha expirado. Por favor evalúa renovar tu suscripción para restablecer inmediatamente la operatividad de tu restaurante.
+      </p>
+      <button 
+        disabled={loading}
+        onClick={async () => {
+          setLoading(true);
+          const res = await createPaymentPreference();
+          if (res?.success && res.initPoint) window.location.href = res.initPoint;
+          else setLoading(false);
+        }}
+        className="btn-primary" style={{ display: 'flex', width: '100%', padding: 16, borderRadius: 12, fontSize: 15, background: 'linear-gradient(135deg, #ea580c, #dc2626)', border: 'none', color: '#fff', justifyContent: 'center', fontWeight: 600 }}>
+        {loading ? 'Generando orden de pago...' : 'Renovar Licencia por 1 Año'}
+      </button>
+      <p style={{ marginTop: 16, fontSize: 12, color: 'var(--text-3)' }}>
+        Una vez realizado el pago, el acceso se otorgará automáticamente.
+      </p>
+    </div>
+  );
+}
+
+export default function HomeClient({ mesas, productos, restaurantName, isExpired, daysRemaining }: { mesas: any[], productos: any[], restaurantName?: string, isExpired?: boolean, daysRemaining?: number }) {
   const [role, setRole] = useState<'admin' | 'waiter' | 'kitchen' | null>(null);
+  const [adminUsername, setAdminUsername] = useState<string>('');
   const [section, setSection] = useState('dashboard');
   const [selectedMesa, setSelectedMesa] = useState<any | null>(null);
   const [facturarMesa, setFacturarMesa] = useState<any | null>(null);
@@ -121,7 +154,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
     );
   };
 
-  if (!role) return <Login onLogin={r => setRole(r as any)} />;
+  if (!role) return <Login onLogin={(r: string, u?: string) => { setRole(r as any); if (u) setAdminUsername(u); }} restaurantName={restaurantName} />;
 
   /* ── KITCHEN (KDS) ── */
   if (role === 'kitchen') {
@@ -132,7 +165,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
             <div style={{ width: 32, height: 32, background: '#ea580c', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <ChefHat size={16} color="white" />
             </div>
-            <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>RestoPOS</span>
+            <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>{restaurantName || 'RestoPOS'}</span>
             <span style={{ fontSize: 11, background: 'rgba(234,88,12,0.1)', padding: '3px 10px', borderRadius: 999, border: '1px solid rgba(234,88,12,0.25)', color: '#ea580c' }}>Cocina</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -144,9 +177,16 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
             </button>
           </div>
         </header>
-        <div style={{ flex: 1 }}>
-          <KDSPanel />
-        </div>
+
+        {isExpired ? (
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+             <PaywallView restaurantName={restaurantName} daysRemaining={daysRemaining} />
+          </div>
+        ) : (
+          <div style={{ flex: 1 }}>
+            <KDSPanel />
+          </div>
+        )}
       </div>
     );
   }
@@ -161,7 +201,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
 
     return (
       <div className="app-layout">
-        <AdminSidebar activeSection={section} onSectionChange={setSection} onLogout={() => setRole(null)} />
+        <AdminSidebar activeSection={section} onSectionChange={setSection} onLogout={() => setRole(null)} restaurantName={restaurantName} />
 
         <div className="main-content">
           {/* Top bar */}
@@ -205,9 +245,29 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
             </div>
           </header>
 
+          {/* Expiration Banner Warning for Admin */}
+          {!isExpired && daysRemaining !== undefined && daysRemaining <= 15 && (
+            <div style={{ background: 'var(--red-muted)', color: 'var(--red)', padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(239, 68, 68, 0.2)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 18 }}>⚠️</span>
+                <span><strong>Atención:</strong> Tu licencia de uso anual expira en <strong>{daysRemaining} días</strong>. Para evitar la suspensión del servicio, por favor renueva prontamente.</span>
+              </div>
+              <button 
+                onClick={async () => {
+                  const res = await createPaymentPreference();
+                  if (res?.success && res.initPoint) window.location.href = res.initPoint;
+                }}
+                className="btn btn-primary" style={{ background: '#ea580c', borderColor: '#ea580c', fontSize: 13, padding: '6px 14px' }}>
+                Renovar Licencia
+              </button>
+            </div>
+          )}
+
           {/* Content */}
           <div style={{ flex: 1, overflow: 'auto', padding: 24 }} className="anim-fade-up" key={section}>
-            {section === 'dashboard' && (
+            {isExpired ? (
+              <PaywallView restaurantName={restaurantName} daysRemaining={daysRemaining} />
+            ) : section === 'dashboard' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {/* Stats row */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
@@ -235,6 +295,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
                     { label: 'Turnos', section: 'turnos', emoji: '⏰' },
                     { label: 'P&L', section: 'pl', emoji: '📊' },
                     { label: 'Delivery', section: 'delivery', emoji: '🛵' },
+                    { label: 'Seguridad', section: 'security', emoji: '🛡️' },
                     { label: 'Backup DB', section: '', emoji: '💾', href: '/api/backup' },
                   ].map(s => (
                     s.href ? (
@@ -283,6 +344,10 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
               <div className="card" style={{ padding: 24 }}>
                 <AnalyticsDashboard onClose={() => setSection('dashboard')} isFullEmbed />
               </div>
+            )}
+
+            {section === 'security' && (
+               <SecurityModule adminUsername={adminUsername} />
             )}
 
             {section === 'caja' && (
@@ -336,7 +401,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
           <div style={{ width: 32, height: 32, background: 'var(--accent)', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <ChefHat size={16} color="white" />
           </div>
-          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>RestoPOS</span>
+          <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>{restaurantName || 'RestoPOS'}</span>
           <span style={{ fontSize: 11, color: 'var(--text-3)', background: 'var(--surface-2)', padding: '3px 10px', borderRadius: 999, border: '1px solid var(--border)' }}>Mesero</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -355,7 +420,11 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
       </header>
 
       {/* MOBILE: full-screen table map, or WaiterOrder as full-screen overlay */}
-      {isMobile ? (
+      {isExpired ? (
+         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <PaywallView restaurantName={restaurantName} daysRemaining={daysRemaining} />
+         </div>
+      ) : isMobile ? (
         <>
           <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <div style={{ padding: '14px 14px 6px' }}>
