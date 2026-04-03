@@ -150,8 +150,8 @@ export default function Login({ onLogin, restaurantName }: { onLogin: (role: Rol
          {ambientBackground}
          <div style={{ width: '100%', maxWidth: '420px', zIndex: 1 }} className="anim-fade-up">
            <div className="glass-panel">
-             <div style={{ width: 64, height: 64, background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05))', border: '1px solid rgba(59, 130, 246, 0.2)', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 28, boxShadow: '0 12px 32px -8px rgba(59, 130, 246, 0.4), inset 0 2px 4px rgba(255,255,255,0.1)' }}>
-               <ShieldCheck size={32} color="#60a5fa" />
+             <div style={{ width: 90, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+               <img src="/logo.png" alt="RestoPOS Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(255,255,255,0.1))' }} />
              </div>
              
              <h2 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 12, color: 'white', textShadow: '0 2px 12px rgba(255,255,255,0.1)' }}>Asigna tu Acceso</h2>
@@ -214,8 +214,8 @@ export default function Login({ onLogin, restaurantName }: { onLogin: (role: Rol
         <div style={{ width: '100%', maxWidth: '480px', zIndex: 1 }} className="anim-fade-up">
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '56px', paddingLeft: '8px' }}>
-            <div style={{ width: 48, height: 48, background: 'linear-gradient(135deg, #ea580c, #dc2626)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 24px -8px rgba(234, 88, 12, 0.6), inset 0 2px 4px rgba(255,255,255,0.3)' }}>
-              <ChefHat size={26} color="white" />
+            <div style={{ width: 80, height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              <img src="/logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(255,255,255,0.1))' }} />
             </div>
             <div>
               <div style={{ fontWeight: 800, fontSize: 22, letterSpacing: '-0.02em', color: 'white', textShadow: '0 2px 10px rgba(255,255,255,0.1)' }}>{restaurantName || 'RestoPOS'}</div>
@@ -292,8 +292,8 @@ export default function Login({ onLogin, restaurantName }: { onLogin: (role: Rol
         </button>
 
         <div className="glass-panel">
-          <div style={{ width: 64, height: 64, background: selectedRole === 'kitchen' ? 'linear-gradient(135deg, rgba(234,88,12,0.15), rgba(234,88,12,0.05))' : 'linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))', border: `1px solid ${selectedRole === 'kitchen' ? 'rgba(234,88,12,0.3)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 28, boxShadow: selectedRole === 'kitchen' ? '0 12px 32px -8px rgba(234, 88, 12, 0.4), inset 0 2px 4px rgba(255,255,255,0.1)' : '0 12px 32px -8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.1)' }}>
-            <Lock size={28} color={selectedRole === 'kitchen' ? '#fb923c' : 'rgba(255,255,255,0.8)'} />
+          <div style={{ width: 90, height: 90, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+            <img src="/logo.png" alt="RestoPOS Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: selectedRole === 'kitchen' ? 'drop-shadow(0 4px 12px rgba(234,88,12,0.3))' : 'drop-shadow(0 4px 12px rgba(255,255,255,0.1))' }} />
           </div>
 
           <h2 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 10, color: 'white', textShadow: '0 2px 8px rgba(255,255,255,0.1)' }}>Acceso Seguro</h2>

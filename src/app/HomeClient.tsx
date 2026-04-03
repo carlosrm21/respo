@@ -201,11 +201,22 @@ export default function HomeClient({ mesas, productos, restaurantName, isExpired
 
     return (
       <div className="app-layout">
+        <style>{`
+          @media (max-width: 768px) {
+            .admin-main-padded { padding-top: 54px !important; }
+            .admin-header-scroll { overflow-x: auto; }
+            .admin-stats-grid { grid-template-columns: 1fr !important; }
+            .admin-shortcuts-grid { grid-template-columns: repeat(3, 1fr) !important; }
+          }
+          @media (max-width: 480px) {
+            .admin-shortcuts-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          }
+        `}</style>
         <AdminSidebar activeSection={section} onSectionChange={setSection} onLogout={() => setRole(null)} restaurantName={restaurantName} />
 
         <div className="main-content">
           {/* Top bar */}
-          <header style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, background: 'var(--bg)' }}>
+          <header className="admin-header-scroll" style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, background: 'var(--bg)', minHeight: 54 }}>
             <div>
               <h1 style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
                 {SECTION_LABELS[section] || 'Dashboard'}
@@ -264,13 +275,13 @@ export default function HomeClient({ mesas, productos, restaurantName, isExpired
           )}
 
           {/* Content */}
-          <div style={{ flex: 1, overflow: 'auto', padding: 24 }} className="anim-fade-up" key={section}>
+          <div style={{ flex: 1, overflow: 'auto', padding: 'clamp(16px, 3vw, 24px)' }} className="anim-fade-up admin-main-padded" key={section}>
             {isExpired ? (
               <PaywallView restaurantName={restaurantName} daysRemaining={daysRemaining} />
             ) : section === 'dashboard' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                 {/* Stats row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
+                <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
                   {stats.map((s, i) => (
                     <div key={i} className="card" style={{ padding: '20px 22px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                       <div>
@@ -286,7 +297,7 @@ export default function HomeClient({ mesas, productos, restaurantName, isExpired
                 </div>
 
                 {/* Shortcuts */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
+                <div className="admin-shortcuts-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
                   {[
                     { label: 'Historial', section: 'historial', emoji: '🧾' },
                     { label: 'Reservas', section: 'reservas', emoji: '📅' },
