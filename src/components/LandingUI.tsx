@@ -1,31 +1,20 @@
 'use client';
 import { useState } from 'react';
 import { ChefHat, ArrowRight, LayoutGrid, Users, UtensilsCrossed, Sparkles, CheckCircle2, ShieldCheck, Zap, Smartphone, Receipt, Package, Star, MessageCircle, ChevronDown, Quote, Loader2, X, Menu } from 'lucide-react';
-import { createPaymentPreference } from '@/app/actions/payment';
+import Link from 'next/link';
 
 export default function LandingUI() {
+  const PAYMENT_URL = 'https://mpago.li/2cBBftf';
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({ restaurantName: '', nit: '', email: '', phone: '' });
 
-  const handlePaymentSubmit = async (e: React.FormEvent) => {
+  const handlePaymentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      setIsProcessingPayment(true);
-      const result = await createPaymentPreference(formData);
-      if (result?.success && result?.initPoint) {
-        window.location.href = result.initPoint;
-      } else {
-        alert("Ocurrió un error al generar la orden de pago. Verifica tu conexión e inténtalo de nuevo.");
-        setIsProcessingPayment(false);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Error inesperado al conectar con el servidor de pagos.");
-      setIsProcessingPayment(false);
-    }
+    setIsProcessingPayment(true);
+    window.location.href = PAYMENT_URL;
   };
 
   const features = [
@@ -107,7 +96,7 @@ export default function LandingUI() {
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #09090b; }
         ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f3f36; }
 
         .hero-title {
           background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
@@ -710,18 +699,18 @@ export default function LandingUI() {
           <div>
             <h4 style={{ color: '#f8fafc', fontSize: 15, fontWeight: 600, marginBottom: 16 }}>Producto SaaS</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <a href="#features" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: 14 }}>Características POS</a>
-              <a href="#benefits" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: 14 }}>Facturación Electrónica DIAN</a>
-              <a href="#pricing" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: 14 }}>Licencia Comercial</a>
+              <Link href="#features" className="nav-link">Características POS</Link>
+              <Link href="/dian-docs" className="nav-link">Facturación Electrónica DIAN</Link>
+              <Link href="#pricing" className="nav-link">Licencia Comercial</Link>
             </div>
           </div>
 
           <div>
             <h4 style={{ color: '#f8fafc', fontSize: 15, fontWeight: 600, marginBottom: 16 }}>Empresa</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <a href="https://www.movilcomts.com" target="_blank" rel="noopener noreferrer" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: 14 }}>Acerca del Desarrollador</a>
-              <a href="#" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: 14 }}>Políticas de Privacidad</a>
-              <a href="#" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: 14 }}>Términos y Condiciones</a>
+              <a href="https://www.movilcomts.com" target="_blank" rel="noopener noreferrer" className="nav-link">Acerca del Desarrollador</a>
+              <Link href="/refund-policy" className="nav-link">Políticas de Reembolso</Link>
+              <Link href="/terms" className="nav-link">Términos y Condiciones</Link>
             </div>
           </div>
         </div>
