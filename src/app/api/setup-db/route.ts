@@ -1,9 +1,17 @@
 export const dynamic = 'force-dynamic';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import db from '@/lib/db';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    // SECURITY CHECK: Only allow if a secret key matches or in development
+    const authHeader = req.headers.get('x-setup-key');
+    const setupKey = process.env.DB_SETUP_KEY || 'movilcom_secret_2026';
+    
+    if (authHeader !== setupKey && process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ error: 'No autorizado para configurar la base de datos en producción.' }, { status: 401 });
+    }
+
     await db.executeMultiple(`
         CREATE TABLE IF NOT EXISTS mesas (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -138,13 +146,13 @@ export async function GET() {
     }
 
     const admins = (await db.execute("SELECT count(*) as count FROM meseros WHERE rol = 'admin'")).rows[0] as unknown as {count: number};
-    if (admins.count === 0) await db.execute({ sql: "INSERT INTO meseros (nombre, rol, pin) VALUES (?, ?, ?)", args: ['Administrador', 'admin', '1234'] });
+    if (admins.count === 0) await db.execute({ sql: "INSERT INTO meseros (nombre, rol, pin) VALUES (?, ?, ?)", args: ['Acceso Administrador', 'admin', '1234'] });
 
     const kitchens = (await db.execute("SELECT count(*) as count FROM meseros WHERE rol = 'kitchen'")).rows[0] as unknown as {count: number};
-    if (kitchens.count === 0) await db.execute({ sql: "INSERT INTO meseros (nombre, rol, pin) VALUES (?, ?, ?)", args: ['Cocina Central', 'kitchen', '5678'] });
+    if (kitchens.count === 0) await db.execute({ sql: "INSERT INTO meseros (nombre, rol, pin) VALUES (?, ?, ?)", args: ['Terminal Cocina', 'kitchen', '5678'] });
 
     const waiters = (await db.execute("SELECT count(*) as count FROM meseros WHERE rol = 'waiter' AND pin IS NOT NULL")).rows[0] as unknown as {count: number};
-    if (waiters.count === 0) await db.execute({ sql: "INSERT INTO meseros (nombre, rol, pin) VALUES (?, ?, ?)", args: ['Mesero Demo', 'waiter', '0000'] });
+    if (waiters.count === 0) await db.execute({ sql: "INSERT INTO meseros (nombre, rol, pin) VALUES (?, ?, ?)", args: ['Terminal Mesero', 'waiter', '0000'] });
 
     const mesaCount = (await db.execute("SELECT COUNT(*) as count FROM mesas")).rows[0] as unknown as {count: number};
     if (mesaCount.count === 0) {
@@ -153,7 +161,7 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ success: true, message: 'Database schema successfully initialized' });
+    return NextResponse.json({ success: true, message: 'Base de Datos inicializada con seguridad habilitada.' });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

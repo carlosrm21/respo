@@ -4,6 +4,8 @@ import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://restopos.movilcomts.com";
+const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
 export const viewport: Viewport = {
   themeColor: "#8b5cf6",
@@ -14,6 +16,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     template: "%s | RestoPOS Software",
     default: "RestoPOS | El Mejor Software POS y Sistema de Gestión para Restaurantes",
@@ -48,15 +51,24 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_CO",
-    url: "https://restopos.movilcomts.com",
+    url: siteUrl,
     title: "RestoPOS | Software POS y Sistema de Gestión para Restaurantes",
     description: "Multiplica las ventas de tu restaurante y agiliza el servicio. Plataforma POS con control de inventario, mesas y Facturación DIAN automatizada.",
     siteName: "RestoPOS",
+    images: [
+      {
+        url: "/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "RestoPOS Software para Restaurantes",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "RestoPOS | Software POS en la Nube para Restaurantes",
     description: "Gestión completa: Control de mesas, App para meseros, Inventario y Facturación Electrónica. Descubre el ecosistema RestoPOS.",
+    images: ["/logo.png"],
   },
   icons: {
     icon: "/logo.png",
@@ -64,7 +76,10 @@ export const metadata: Metadata = {
     apple: "/logo.png",
   },
   alternates: {
-    canonical: "https://restopos.movilcomts.com",
+    canonical: siteUrl,
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
   },
   formatDetection: {
     email: false,
@@ -86,25 +101,28 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
       <body className={inter.variable}>
-        {/* Google Analytics */}
-        <Script
-          strategy="afterInteractive"
-          src={`https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX`}
-        />
-        <Script
-          id="google-analytics"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-XXXXXXXXXX', {
-                page_path: window.location.pathname,
-              });
-            `,
-          }}
-        />
+        {gaId ? (
+          <>
+            <Script
+              strategy="afterInteractive"
+              src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
+            />
+            <Script
+              id="google-analytics"
+              strategy="afterInteractive"
+              dangerouslySetInnerHTML={{
+                __html: `
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', '${gaId}', {
+                    page_path: window.location.pathname,
+                  });
+                `,
+              }}
+            />
+          </>
+        ) : null}
         {children}
       </body>
     </html>
