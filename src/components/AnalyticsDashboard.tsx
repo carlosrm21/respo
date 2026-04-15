@@ -37,6 +37,14 @@ export default function AnalyticsDashboard({ onClose, isFullEmbed = false }: { o
   const [productos, setProductos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 900);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const fetchAll = useCallback(async (p: Period) => {
     setRefreshing(true);
@@ -65,14 +73,14 @@ export default function AnalyticsDashboard({ onClose, isFullEmbed = false }: { o
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }} className="anim-fade-up">
       {/* Header row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: isCompact ? 'wrap' : 'nowrap' }}>
         <div>
           <h3 style={{ fontSize: 15, fontWeight: 600, letterSpacing: '-0.02em' }}>Analíticas de Ventas</h3>
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>Panel de rendimiento operacional</p>
         </div>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center', width: isCompact ? '100%' : 'auto', justifyContent: isCompact ? 'space-between' : 'flex-end' }}>
           {/* Period tabs */}
-          <div style={{ display: 'flex', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 3, gap: 2 }}>
+          <div style={{ display: 'flex', flexWrap: isCompact ? 'wrap' : 'nowrap', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: 3, gap: 2 }}>
             {PERIODS.map(p => (
               <button key={p.id} onClick={() => setPeriod(p.id)}
                 style={{ padding: '5px 12px', borderRadius: 7, border: 'none', cursor: 'pointer', fontSize: 12.5, fontWeight: 500, fontFamily: 'inherit', transition: 'all 120ms ease', background: period === p.id ? 'var(--accent)' : 'transparent', color: period === p.id ? 'white' : 'var(--text-2)' }}>
@@ -111,7 +119,7 @@ export default function AnalyticsDashboard({ onClose, isFullEmbed = false }: { o
       )}
 
       {/* KPI cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isCompact ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, 1fr)', gap: 12 }}>
         {[
           { label: 'Ventas totales', value: formatCOP(resumen?.total_ventas), icon: DollarSign, color: 'var(--accent)' },
           { label: 'Facturas emitidas', value: String(resumen?.total_facturas || 0), icon: ShoppingBag, color: 'var(--green)' },
@@ -130,7 +138,7 @@ export default function AnalyticsDashboard({ onClose, isFullEmbed = false }: { o
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : '1fr 1fr', gap: 14 }}>
         {/* Bar chart — últimos 7 días */}
         <div className="card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 18 }}>
@@ -191,7 +199,8 @@ export default function AnalyticsDashboard({ onClose, isFullEmbed = false }: { o
             Período: {PERIODS.find(p => p.id === period)?.label}
           </span>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: 860, borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: 'var(--surface-2)' }}>
               {['Mesero', 'Pedidos', 'Ticket prom.', 'Días trabajados', 'Total ventas', 'Participación', 'Estado'].map(h => (
@@ -251,7 +260,8 @@ export default function AnalyticsDashboard({ onClose, isFullEmbed = false }: { o
               <tr><td colSpan={7} style={{ padding: '32px 14px', textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>Sin datos de meseros disponibles</td></tr>
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>

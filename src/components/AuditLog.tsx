@@ -12,6 +12,14 @@ export default function AuditLog() {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtro, setFiltro] = useState('');
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 900);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const load = useCallback(async () => {
     const res = await getAuditLog(200);
@@ -36,17 +44,42 @@ export default function AuditLog() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-        <div style={{ position: 'relative', flex: 1, maxWidth: 300 }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: isCompact ? 'wrap' : 'nowrap' }}>
+        <div style={{ position: 'relative', flex: 1, maxWidth: isCompact ? '100%' : 300, minWidth: isCompact ? '100%' : undefined }}>
           <Filter size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)' }} />
           <input className="input" value={filtro} onChange={e => setFiltro(e.target.value)} placeholder="Filtrar por usuario, acción..." style={{ paddingLeft: 30, fontSize: 13 }} />
         </div>
-        <button onClick={load} className="btn btn-outline" style={{ fontSize: 12 }}>Actualizar</button>
-        <span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 'auto' }}>{filtered.length} eventos</span>
+        <button onClick={load} className="btn btn-outline" style={{ fontSize: 12, width: isCompact ? '100%' : 'auto' }}>Actualizar</button>
+        <span style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: isCompact ? 0 : 'auto', width: isCompact ? '100%' : 'auto' }}>{filtered.length} eventos</span>
       </div>
 
       <div className="card" style={{ overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        {isCompact ? (
+          <div style={{ padding: 12, display: 'grid', gap: 10 }}>
+            {loading ? (
+              <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-3)' }}>Cargando...</div>
+            ) : filtered.length === 0 ? (
+              <div style={{ padding: '30px', textAlign: 'center', color: 'var(--text-3)' }}>
+                <Shield size={28} style={{ display: 'block', margin: '0 auto 10px', opacity: 0.3 }} />
+                Sin eventos de auditoría registrados aún
+              </div>
+            ) : filtered.map((l: any) => (
+              <article key={l.id} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface-2)', padding: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                  <strong style={{ fontSize: 13 }}>{l.usuario}</strong>
+                  <span style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 999, background: getColor(l.accion) + '15', color: getColor(l.accion) }}>{l.accion}</span>
+                </div>
+                <div style={{ fontSize: 12, color: 'var(--text-2)', display: 'grid', gap: 4 }}>
+                  <span><strong>Fecha:</strong> {new Date(l.fecha).toLocaleDateString('es-CO')} {new Date(l.fecha).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span><strong>Entidad:</strong> {l.entidad || '—'}</span>
+                  <span><strong>Detalle:</strong> {l.detalle || '—'}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', minWidth: 760, borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
               {['Fecha & Hora', 'Usuario', 'Acción', 'Entidad', 'Detalle'].map(h => (
@@ -90,7 +123,9 @@ export default function AuditLog() {
               </tr>
             ))}
           </tbody>
-        </table>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -21,6 +21,14 @@ export default function Inventario() {
   const [editId, setEditId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [adjusting, setAdjusting] = useState<number | null>(null);
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 900);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const load = useCallback(async () => {
     const r = await getInventario();
@@ -75,12 +83,12 @@ export default function Inventario() {
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: isCompact ? 'stretch' : 'center', justifyContent: 'space-between', marginBottom: 20, gap: 10, flexWrap: isCompact ? 'wrap' : 'nowrap' }}>
         <div>
           <h3 style={{ fontSize: 15, fontWeight: 600 }}>Inventario de Comidas Rápidas</h3>
           <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{items.length} ítems · {filtered.length} mostrados</p>
         </div>
-        <button onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY); }} className="btn btn-primary" style={{ gap: 6, fontSize: 13 }}>
+        <button onClick={() => { setShowForm(true); setEditId(null); setForm(EMPTY); }} className="btn btn-primary" style={{ gap: 6, fontSize: 13, width: isCompact ? '100%' : 'auto', justifyContent: 'center' }}>
           <Plus size={14} /> Añadir ítem
         </button>
       </div>
@@ -94,12 +102,12 @@ export default function Inventario() {
       )}
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: isCompact ? 'wrap' : 'nowrap' }}>
         <div style={{ position: 'relative', flex: 1 }}>
           <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-3)' }} />
           <input className="input" placeholder="Buscar por nombre o proveedor..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: 32, fontSize: 13 }} />
         </div>
-        <select className="input" value={catFilter} onChange={e => setCatFilter(e.target.value)} style={{ width: 'auto', minWidth: 160, fontSize: 13 }}>
+        <select className="input" value={catFilter} onChange={e => setCatFilter(e.target.value)} style={{ width: isCompact ? '100%' : 'auto', minWidth: isCompact ? undefined : 160, fontSize: 13 }}>
           <option value="">Todas las categorías</option>
           {cats.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
@@ -107,7 +115,8 @@ export default function Inventario() {
 
       {/* Table */}
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', minWidth: 860, borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
               {['Ítem', 'Categoría', 'Stock', 'Ajustar', 'Costo/und', 'Proveedor', ''].map(h => (
@@ -172,7 +181,8 @@ export default function Inventario() {
               </td></tr>
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       </div>
 
       {/* Add/Edit Modal */}

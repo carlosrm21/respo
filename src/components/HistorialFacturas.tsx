@@ -13,6 +13,14 @@ export default function HistorialFacturas() {
   const [fechaHasta, setFechaHasta] = useState('');
   const [meseroId, setMeseroId] = useState('');
   const [metodo, setMetodo] = useState('');
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => setIsCompact(window.innerWidth < 900);
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -47,7 +55,7 @@ export default function HistorialFacturas() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* KPI Row */}
       {resumen && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isCompact ? '1fr' : 'repeat(3, 1fr)', gap: 12 }}>
           {[
             { label: 'Hoy', total: resumen.hoy?.total, facturas: resumen.hoy?.facturas },
             { label: 'Esta semana', total: resumen.semana?.total, facturas: resumen.semana?.facturas },
@@ -64,36 +72,66 @@ export default function HistorialFacturas() {
 
       {/* Filters */}
       <div className="card" style={{ padding: '14px 18px', display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: isCompact ? '100%' : undefined }}>
           <label style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 500 }}>Desde</label>
           <input type="date" className="input" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} style={{ fontSize: 13, padding: '6px 10px' }} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: isCompact ? '100%' : undefined }}>
           <label style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 500 }}>Hasta</label>
           <input type="date" className="input" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} style={{ fontSize: 13, padding: '6px 10px' }} />
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: isCompact ? '100%' : undefined }}>
           <label style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 500 }}>Mesero</label>
           <select className="input" value={meseroId} onChange={e => setMeseroId(e.target.value)} style={{ fontSize: 13, padding: '6px 10px' }}>
             <option value="">Todos</option>
             {meseros.map((m: any) => <option key={m.id} value={m.id}>{m.nombre}</option>)}
           </select>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, minWidth: isCompact ? '100%' : undefined }}>
           <label style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 500 }}>Método de pago</label>
           <select className="input" value={metodo} onChange={e => setMetodo(e.target.value)} style={{ fontSize: 13, padding: '6px 10px' }}>
             <option value="">Todos</option>
             <option>Efectivo</option><option>Tarjeta</option><option>Transferencia</option><option>Otro</option>
           </select>
         </div>
-        <button onClick={exportCSV} className="btn btn-outline" style={{ fontSize: 12, gap: 5, marginLeft: 'auto' }}>
+        <button onClick={exportCSV} className="btn btn-outline" style={{ fontSize: 12, gap: 5, marginLeft: isCompact ? 0 : 'auto', width: isCompact ? '100%' : 'auto', justifyContent: 'center' }}>
           <Download size={13} /> Exportar CSV
         </button>
       </div>
 
       {/* Table */}
       <div className="card" style={{ overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        {isCompact ? (
+          <div style={{ padding: 12, display: 'grid', gap: 10 }}>
+            {loading ? (
+              <div style={{ padding: '32px 12px', textAlign: 'center', color: 'var(--text-3)' }}>Cargando...</div>
+            ) : facturas.length === 0 ? (
+              <div style={{ padding: '32px 12px', textAlign: 'center', color: 'var(--text-3)' }}>
+                <Receipt size={28} style={{ margin: '0 auto 10px', display: 'block', opacity: 0.3 }} />
+                No hay facturas con esos filtros
+              </div>
+            ) : facturas.map((f: any) => (
+              <article key={f.id} style={{ border: '1px solid var(--border)', borderRadius: 12, background: 'var(--surface-2)', padding: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+                  <strong style={{ fontSize: 13 }}>Factura #{f.id}</strong>
+                  <span className="badge" style={{ fontSize: 10, background: 'var(--surface)', color: 'var(--text-2)' }}>{f.metodo_pago || '—'}</span>
+                </div>
+                <div style={{ display: 'grid', gap: 5, fontSize: 12, color: 'var(--text-2)' }}>
+                  <span><strong>Fecha:</strong> {new Date(f.fecha_emision).toLocaleDateString('es-CO')} {new Date(f.fecha_emision).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span><strong>Mesa:</strong> {f.mesa_numero} · <strong>Mesero:</strong> {f.mesero_nombre || '—'}</span>
+                  <span><strong>Ítems:</strong> {f.items || '—'}</span>
+                  <span><strong>Descuento:</strong> {f.descuento > 0 ? (f.descuento_tipo === 'porcentaje' ? `-${f.descuento}%` : `-${formatCOP(f.descuento)}`) : '—'}</span>
+                </div>
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px dashed var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, color: 'var(--text-3)' }}>Total</span>
+                  <strong style={{ fontSize: 14 }}>{formatCOP(f.total)}</strong>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', minWidth: 860, borderCollapse: 'collapse', fontSize: 13 }}>
           <thead>
             <tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
               {['#', 'Fecha & Hora', 'Mesa', 'Mesero', 'Ítems', 'Descuento', 'Total', 'Método'].map(h => (
@@ -141,7 +179,9 @@ export default function HistorialFacturas() {
               </tr>
             ))}
           </tbody>
-        </table>
+            </table>
+          </div>
+        )}
       </div>
       <p style={{ fontSize: 11, color: 'var(--text-3)', textAlign: 'right' }}>{facturas.length} registro(s)</p>
     </div>
