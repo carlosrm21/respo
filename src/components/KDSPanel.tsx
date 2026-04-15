@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { Clock, ChefHat, CheckCircle2, AlertCircle, RefreshCw, Flame } from 'lucide-react';
+import { Clock, CheckCircle2, RefreshCw, Flame } from 'lucide-react';
 import { getKDSPedidos, updateItemEstado } from '@/app/actions/kds';
 
 const ESTADO_CONFIG: Record<string, { label: string; color: string; next: 'cocinando' | 'servido' | null }> = {
@@ -41,8 +41,8 @@ export default function KDSPage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--accent-muted)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ChefHat size={20} color="var(--accent-hover)" />
+          <div style={{ width: 40, height: 40, borderRadius: 12, background: 'var(--accent-muted)', border: '1px solid var(--accent-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <img src="/logo.png" alt="Logo RestoPOS" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           </div>
           <div>
             <h1 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', margin: 0 }}>Cocina — Panel de Pedidos</h1>
