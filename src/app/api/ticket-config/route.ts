@@ -201,8 +201,8 @@ export async function GET() {
 
         const config = getConfigFromFile();
         return NextResponse.json({ success: true, data: config, source: 'file' });
-    } catch {
-        return NextResponse.json({ success: false, error: 'Error loading ticket config' }, { status: 500 });
+    } catch (error: any) {
+        return NextResponse.json({ success: false, error: 'Error loading ticket config', detail: error?.message || 'unknown' }, { status: 500 });
     }
 }
 
@@ -235,7 +235,7 @@ export async function POST(req: Request) {
 
         saveConfigToFile(config);
         return NextResponse.json({ success: true, source: 'file' });
-    } catch {
-        return NextResponse.json({ success: false, error: 'Error saving ticket config' }, { status: 500 });
+    } catch (error: any) {
+        return NextResponse.json({ success: false, error: 'Error saving ticket config', detail: error?.message || 'unknown' }, { status: 500 });
     }
 }
