@@ -32,6 +32,8 @@ const TICKET_CONFIG_MAP = {
 } as const;
 
 type TicketConfig = typeof DEFAULT_CONFIG;
+const FALLBACK_AUDIT_ACTION = 'ticket_config_saved';
+const FALLBACK_AUDIT_ENTITY = 'ticket_config';
 
 function normalizeLogoDataUrl(value: unknown) {
     const text = typeof value === 'string' ? value.trim() : '';
@@ -85,6 +87,40 @@ async function getConfigFromSupabase(): Promise<TicketConfig> {
     };
 }
 
+async function getConfigFromAuditLogFallback(): Promise<TicketConfig | null> {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+        .from('audit_log')
+        .select('detalle')
+        .eq('accion', FALLBACK_AUDIT_ACTION)
+        .eq('entidad', FALLBACK_AUDIT_ENTITY)
+        .order('fecha', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    if (error) throw new Error(error.message);
+    const detalle = typeof data?.detalle === 'string' ? data.detalle : '';
+    if (!detalle) return null;
+
+    try {
+        const parsed = JSON.parse(detalle);
+        return {
+            nombreNegocio: parsed.nombreNegocio || DEFAULT_CONFIG.nombreNegocio,
+            nit: parsed.nit || '',
+            direccion: parsed.direccion || '',
+            telefono: parsed.telefono || '',
+            mensajePie: parsed.mensajePie ?? DEFAULT_CONFIG.mensajePie,
+            anchoPapel: parsed.anchoPapel === '58mm' ? '58mm' : '80mm',
+            ivaPorcentaje: typeof parsed.ivaPorcentaje === 'number' ? parsed.ivaPorcentaje : DEFAULT_CONFIG.ivaPorcentaje,
+            mostrarDIAN: typeof parsed.mostrarDIAN === 'boolean' ? parsed.mostrarDIAN : DEFAULT_CONFIG.mostrarDIAN,
+            mostrarLogo: typeof parsed.mostrarLogo === 'boolean' ? parsed.mostrarLogo : DEFAULT_CONFIG.mostrarLogo,
+            logoDataUrl: normalizeLogoDataUrl(parsed.logoDataUrl),
+        };
+    } catch {
+        return null;
+    }
+}
+
 async function saveConfigToSupabase(config: TicketConfig) {
     const supabase = getSupabaseAdmin();
     const rows = [
@@ -105,6 +141,26 @@ async function saveConfigToSupabase(config: TicketConfig) {
         .upsert(rows, { onConflict: 'clave' });
 
     if (error) throw new Error(error.message);
+}
+
+async function saveConfigToAuditLogFallback(config: TicketConfig) {
+    const supabase = getSupabaseAdmin();
+    const payload = JSON.stringify({ ...config, updatedAt: new Date().toISOString() });
+    const { error } = await supabase
+        .from('audit_log')
+        .insert({
+            usuario: 'system',
+            accion: FALLBACK_AUDIT_ACTION,
+            entidad: FALLBACK_AUDIT_ENTITY,
+            detalle: payload,
+        });
+
+    if (error) throw new Error(error.message);
+}
+
+function isMissingConfigTableError(error: unknown) {
+    const message = String((error as any)?.message || error || '').toLowerCase();
+    return message.includes('configuracion_restaurante') && message.includes('schema cache');
 }
 
 function getConfigFromFile() {
@@ -128,8 +184,19 @@ function saveConfigToFile(config: TicketConfig) {
 export async function GET() {
     try {
         if (isSupabaseConfigured) {
-            const config = await getConfigFromSupabase();
-            return NextResponse.json({ success: true, data: config, source: 'supabase' });
+            try {
+                const config = await getConfigFromSupabase();
+                return NextResponse.json({ success: true, data: config, source: 'supabase' });
+            } catch (error) {
+                if (!isMissingConfigTableError(error)) throw error;
+
+                const fallbackConfig = await getConfigFromAuditLogFallback();
+                return NextResponse.json({
+                    success: true,
+                    data: fallbackConfig || DEFAULT_CONFIG,
+                    source: fallbackConfig ? 'audit_log_fallback' : 'default_fallback'
+                });
+            }
         }
 
         const config = getConfigFromFile();
@@ -156,8 +223,14 @@ export async function POST(req: Request) {
         };
 
         if (isSupabaseConfigured) {
-            await saveConfigToSupabase(config);
-            return NextResponse.json({ success: true, source: 'supabase' });
+            try {
+                await saveConfigToSupabase(config);
+                return NextResponse.json({ success: true, source: 'supabase' });
+            } catch (error) {
+                if (!isMissingConfigTableError(error)) throw error;
+                await saveConfigToAuditLogFallback(config);
+                return NextResponse.json({ success: true, source: 'audit_log_fallback' });
+            }
         }
 
         saveConfigToFile(config);
