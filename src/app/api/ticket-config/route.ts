@@ -13,7 +13,20 @@ const DEFAULT_CONFIG = {
     anchoPapel: '80mm',
     ivaPorcentaje: 8,
     mostrarDIAN: true,
+    mostrarLogo: false,
+    logoDataUrl: '',
 };
+
+function normalizeLogoDataUrl(value: unknown) {
+    const text = typeof value === 'string' ? value.trim() : '';
+    if (!text) return '';
+    if (!text.startsWith('data:image/')) return '';
+
+    // Prevent oversized config files from very large images.
+    const maxChars = 1_500_000;
+    if (text.length > maxChars) return '';
+    return text;
+}
 
 function ensureDir() {
     const dir = path.dirname(CONFIG_PATH);
@@ -46,6 +59,8 @@ export async function POST(req: Request) {
             anchoPapel: body.anchoPapel || DEFAULT_CONFIG.anchoPapel,
             ivaPorcentaje: typeof body.ivaPorcentaje === 'number' ? body.ivaPorcentaje : DEFAULT_CONFIG.ivaPorcentaje,
             mostrarDIAN: body.mostrarDIAN ?? DEFAULT_CONFIG.mostrarDIAN,
+            mostrarLogo: Boolean(body.mostrarLogo),
+            logoDataUrl: normalizeLogoDataUrl(body.logoDataUrl),
             updatedAt: new Date().toISOString(),
         };
         fs.writeFileSync(CONFIG_PATH, JSON.stringify(config, null, 2));

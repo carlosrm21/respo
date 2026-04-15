@@ -74,6 +74,8 @@ export default function FacturacionModal({ mesaId, mesaNumero, onClose, onSucces
         const anchoPapel = tc.anchoPapel || '80mm';
         const mensajePie = tc.mensajePie ?? '¡Gracias por su visita!';
         const mostrarDIAN = tc.mostrarDIAN ?? true;
+        const mostrarLogo = tc.mostrarLogo ?? false;
+        const logoDataUrl = typeof tc.logoDataUrl === 'string' ? tc.logoDataUrl : '';
         const fecha = new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
         const itemsHtml = (orderData?.detalles || []).map((item: any) => `
             <tr>
@@ -96,6 +98,9 @@ export default function FacturacionModal({ mesaId, mesaNumero, onClose, onSucces
             facturaResult?.numero_dian ? `<div class="line"></div><p class="footer">DIAN: ${facturaResult.numero_dian}</p>` : '',
             facturaResult?.cufe ? `<p class="footer" style="font-size:9px">CUFE: ${facturaResult.cufe}</p>` : '',
         ].join('\n') : '';
+        const logoHtml = mostrarLogo && logoDataUrl
+            ? `<div class="center" style="margin-bottom:8px"><img src="${logoDataUrl}" alt="Logo" style="max-width:70%; max-height:56px; object-fit:contain;" /></div>`
+            : '';
         const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
         <style>
             * { margin:0; padding:0; box-sizing:border-box; }
@@ -110,6 +115,7 @@ export default function FacturacionModal({ mesaId, mesaNumero, onClose, onSucces
             @media print { @page { margin: 0; size: ${anchoPapel} auto; } }
         </style></head>
         <body>
+            ${logoHtml}
             <h1>${nombre}</h1>
             ${headerInfoHtml}
             <p class="center">Factura de Consumo</p>

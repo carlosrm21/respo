@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Printer, Save, CheckCircle, Store, FileText, Phone, MapPin, MessageSquare, Ruler } from 'lucide-react';
+import { Printer, Save, CheckCircle, Store, FileText, Ruler, ImagePlus, Trash2 } from 'lucide-react';
 
 interface TicketConfig {
     nombreNegocio: string;
@@ -12,6 +12,8 @@ interface TicketConfig {
     anchoPapel: '58mm' | '80mm';
     ivaPorcentaje: number;
     mostrarDIAN: boolean;
+    mostrarLogo: boolean;
+    logoDataUrl: string;
 }
 
 const DEFAULT: TicketConfig = {
@@ -23,6 +25,8 @@ const DEFAULT: TicketConfig = {
     anchoPapel: '80mm',
     ivaPorcentaje: 8,
     mostrarDIAN: true,
+    mostrarLogo: false,
+    logoDataUrl: '',
 };
 
 export default function TicketPOSConfig() {
@@ -57,6 +61,33 @@ export default function TicketPOSConfig() {
     };
 
     const update = (key: keyof TicketConfig, val: any) => setConfig(prev => ({ ...prev, [key]: val }));
+
+    const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith('image/')) {
+            alert('Selecciona una imagen valida (PNG, JPG o WEBP).');
+            event.target.value = '';
+            return;
+        }
+
+        const maxSizeBytes = 1024 * 1024;
+        if (file.size > maxSizeBytes) {
+            alert('La imagen es muy grande. Usa un archivo menor a 1MB.');
+            event.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const dataUrl = typeof reader.result === 'string' ? reader.result : '';
+            if (!dataUrl) return;
+            setConfig(prev => ({ ...prev, logoDataUrl: dataUrl, mostrarLogo: true }));
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    };
 
     const previewWidth = config.anchoPapel === '58mm' ? 220 : 302;
     const now = new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
@@ -164,6 +195,70 @@ export default function TicketPOSConfig() {
                                 </button>
                                 <span style={{ fontSize: 13, color: 'var(--text-2)' }}>Mostrar información DIAN en el ticket</span>
                             </div>
+
+                            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                                <p style={{ ...labelStyle, marginBottom: 8 }}>Logo para impresión POS</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+                                    <label
+                                        style={{
+                                            padding: '8px 12px',
+                                            borderRadius: 10,
+                                            border: '1px solid var(--border)',
+                                            background: 'var(--surface)',
+                                            cursor: 'pointer',
+                                            fontSize: 12,
+                                            fontWeight: 600,
+                                            color: 'var(--text-2)',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 6
+                                        }}
+                                    >
+                                        <ImagePlus size={14} /> Subir logo
+                                        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleLogoUpload} style={{ display: 'none' }} />
+                                    </label>
+                                    {config.logoDataUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setConfig(prev => ({ ...prev, logoDataUrl: '', mostrarLogo: false }))}
+                                            style={{
+                                                padding: '8px 12px',
+                                                borderRadius: 10,
+                                                border: '1px solid rgba(239,68,68,0.35)',
+                                                background: 'rgba(239,68,68,0.08)',
+                                                cursor: 'pointer',
+                                                fontSize: 12,
+                                                fontWeight: 600,
+                                                color: '#ef4444',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: 6
+                                            }}
+                                        >
+                                            <Trash2 size={14} /> Quitar logo
+                                        </button>
+                                    )}
+                                </div>
+
+                                {config.logoDataUrl && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <button onClick={() => update('mostrarLogo', !config.mostrarLogo)}
+                                            style={{
+                                                width: 42, height: 24, borderRadius: 12,
+                                                background: config.mostrarLogo ? 'var(--accent)' : 'var(--border)',
+                                                border: 'none', cursor: 'pointer', position: 'relative',
+                                                transition: 'background 150ms ease', flexShrink: 0,
+                                            }}>
+                                            <span style={{
+                                                position: 'absolute', top: 3, left: config.mostrarLogo ? 21 : 3,
+                                                width: 18, height: 18, borderRadius: '50%', background: 'white',
+                                                transition: 'left 150ms ease', boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                                            }} />
+                                        </button>
+                                        <span style={{ fontSize: 13, color: 'var(--text-2)' }}>Mostrar logo en la impresión</span>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -193,6 +288,15 @@ export default function TicketPOSConfig() {
                     }}>
                         {/* Header */}
                         <div style={{ textAlign: 'center', marginBottom: 4 }}>
+                            {config.mostrarLogo && config.logoDataUrl && (
+                                <div style={{ marginBottom: 8 }}>
+                                    <img
+                                        src={config.logoDataUrl}
+                                        alt="Logo del restaurante"
+                                        style={{ maxWidth: '70%', maxHeight: 56, objectFit: 'contain' }}
+                                    />
+                                </div>
+                            )}
                             <div style={{ fontSize: 15, fontWeight: 'bold' }}>{config.nombreNegocio || 'RestoPOS'}</div>
                             {config.nit && <div style={{ fontSize: 10 }}>NIT: {config.nit}</div>}
                             {config.direccion && <div style={{ fontSize: 10 }}>{config.direccion}</div>}
