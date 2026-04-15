@@ -3,6 +3,11 @@ import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
 import { hashPin, isHashedPin, normalizePin, verifyPin } from '@/lib/pinSecurity';
 import { getLicenseStatus } from '@/lib/license';
 
+function isMissingLicenseTableError(error: unknown) {
+  const message = String((error as any)?.message || error || '').toLowerCase();
+  return message.includes('licencia_estado') && message.includes('schema cache');
+}
+
 export async function verifyLicense() {
   try {
     const status = await getLicenseStatus();
@@ -13,6 +18,24 @@ export async function verifyLicense() {
     return { valid: true, status };
   } catch (error) {
     console.error(error);
+    if (isMissingLicenseTableError(error)) {
+      // Do not block operational login if the license table was not provisioned yet.
+      return {
+        valid: true,
+        message: 'Licenciamiento temporalmente en modo de recuperacion.',
+        status: {
+          valid: true,
+          status: 'trial',
+          plan: 'trial-recovery',
+          startedAt: new Date().toISOString(),
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          daysRemaining: 1,
+          trialDays: 1,
+          paymentRequired: false,
+          message: 'Licenciamiento temporalmente en modo de recuperacion.'
+        }
+      };
+    }
     return { valid: false, message: 'Error interno al verificar la licencia SaaS' };
   }
 }
