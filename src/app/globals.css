@@ -648,3 +648,42 @@ body {
     flex-direction: column;
   }
 }
+
+/* Mobile + Tablet UX polish */
+@media (max-width: 900px) {
+  .app-layout {
+    height: 100dvh;
+  }
+
+  .main-content {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .btn {
+    min-height: 42px;
+    padding: 10px 14px;
+  }
+
+  /* Keep 16px to avoid iOS auto-zoom on focus */
+  .input,
+  select.input,
+  textarea.input {
+    font-size: 16px;
+    min-height: 42px;
+  }
+
+  .badge {
+    padding: 4px 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .btn {
+    min-height: 44px;
+    border-radius: 12px;
+  }
+
+  .card {
+    border-radius: 14px;
+  }
+}
