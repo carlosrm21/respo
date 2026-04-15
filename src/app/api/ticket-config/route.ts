@@ -32,8 +32,6 @@ const TICKET_CONFIG_MAP = {
 } as const;
 
 type TicketConfig = typeof DEFAULT_CONFIG;
-const FALLBACK_AUDIT_ACTION = 'ticket_config_saved';
-const FALLBACK_AUDIT_ENTITY = 'ticket_config';
 
 function normalizeLogoDataUrl(value: unknown) {
     const text = typeof value === 'string' ? value.trim() : '';
@@ -87,23 +85,24 @@ async function getConfigFromSupabase(): Promise<TicketConfig> {
     };
 }
 
-async function getConfigFromAuditLogFallback(): Promise<TicketConfig | null> {
+async function getConfigFromMaintenanceFallback(): Promise<TicketConfig | null> {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
-        .from('audit_log')
-        .select('detalle')
-        .eq('accion', FALLBACK_AUDIT_ACTION)
-        .eq('entidad', FALLBACK_AUDIT_ENTITY)
-        .order('fecha', { ascending: false })
+        .from('maintenance_audit')
+        .select('details')
+        .eq('trigger', 'manual')
+        .not('details', 'is', null)
+        .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
     if (error) throw new Error(error.message);
-    const detalle = typeof data?.detalle === 'string' ? data.detalle : '';
-    if (!detalle) return null;
+    const details = data?.details as any;
+    const payload = details?.ticketConfig;
+    if (!payload || typeof payload !== 'object') return null;
 
     try {
-        const parsed = JSON.parse(detalle);
+        const parsed = payload;
         return {
             nombreNegocio: parsed.nombreNegocio || DEFAULT_CONFIG.nombreNegocio,
             nit: parsed.nit || '',
@@ -143,16 +142,23 @@ async function saveConfigToSupabase(config: TicketConfig) {
     if (error) throw new Error(error.message);
 }
 
-async function saveConfigToAuditLogFallback(config: TicketConfig) {
+async function saveConfigToMaintenanceFallback(config: TicketConfig) {
     const supabase = getSupabaseAdmin();
-    const payload = JSON.stringify({ ...config, updatedAt: new Date().toISOString() });
+    const now = new Date().toISOString();
+    const payload = {
+        ticketConfig: {
+            ...config,
+            updatedAt: now
+        }
+    };
+
     const { error } = await supabase
-        .from('audit_log')
+        .from('maintenance_audit')
         .insert({
-            usuario: 'system',
-            accion: FALLBACK_AUDIT_ACTION,
-            entidad: FALLBACK_AUDIT_ENTITY,
-            detalle: payload,
+            trigger: 'manual',
+            started_at: now,
+            finished_at: now,
+            details: payload,
         });
 
     if (error) throw new Error(error.message);
@@ -190,11 +196,11 @@ export async function GET() {
             } catch (error) {
                 if (!isMissingConfigTableError(error)) throw error;
 
-                const fallbackConfig = await getConfigFromAuditLogFallback();
+                const fallbackConfig = await getConfigFromMaintenanceFallback();
                 return NextResponse.json({
                     success: true,
                     data: fallbackConfig || DEFAULT_CONFIG,
-                    source: fallbackConfig ? 'audit_log_fallback' : 'default_fallback'
+                    source: fallbackConfig ? 'maintenance_audit_fallback' : 'default_fallback'
                 });
             }
         }
@@ -228,8 +234,8 @@ export async function POST(req: Request) {
                 return NextResponse.json({ success: true, source: 'supabase' });
             } catch (error) {
                 if (!isMissingConfigTableError(error)) throw error;
-                await saveConfigToAuditLogFallback(config);
-                return NextResponse.json({ success: true, source: 'audit_log_fallback' });
+                await saveConfigToMaintenanceFallback(config);
+                return NextResponse.json({ success: true, source: 'maintenance_audit_fallback' });
             }
         }
 
