@@ -1,13 +1,16 @@
-import { getMesas } from './actions/mesas';
-import { getProductos } from './actions/pedido';
-import HomeClient from './HomeClient';
+import LandingUI from '@/components/LandingUI';
+import type { Metadata } from 'next';
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://restopos.movilcomts.com';
+
+export const metadata: Metadata = {
+  title: 'Software POS para Restaurantes en Colombia',
+  description: 'Impulsa tu restaurante con un software POS completo: facturacion electronica DIAN, control de mesas, inventario, cocina KDS y analiticas.',
+  alternates: {
+    canonical: `${siteUrl}/`
+  }
+};
 
 export default async function Home() {
-  const mesasResult = await getMesas();
-  const productosResult = await getProductos();
-
-  const mesas = mesasResult.success ? mesasResult.data as any[] : [];
-  const productos = productosResult.success ? productosResult.data as any[] : [];
-
-  return <HomeClient mesas={mesas} productos={productos} />;
+  return <LandingUI />;
 }

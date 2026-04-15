@@ -1,0 +1,5 @@
+Contact: https://www.movilcomts.com
+Expires: 2027-04-09T00:00:00.000Z
+Preferred-Languages: es, en
+Canonical: https://restopos.movilcomts.com/.well-known/security.txt
+Policy: https://restopos.movilcomts.com/security-policy

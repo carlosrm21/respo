@@ -1,0 +1,70 @@
+﻿
+> restaurante-web@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.3.0
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully in 0ms
+   Linting and checking validity of types ...
+node.exe :  Ô¿» ESLint: 
+Cannot find module 'E:\APP 
+INVENTARIO\app restaurante\
+restaurante-web\node_module
+s\eslint-config-next\core-w
+eb-vitals' imported from 
+E:\APP INVENTARIO\app resta
+urante\restaurante-web\esli
+nt.config.mjs Did you mean 
+to import "eslint-config-ne
+xt/core-web-vitals.js"?
+En línea: 1 Carácter: 1
++ & "C:\Program 
+Files\nodejs/node.exe" "C:\
+Users\carlos\AppData\Roamin
+g ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+ : N    otSpecified: ( Ô¿» 
+ESLint:     Ca...web-vitals
+.js"?:String    ) [], 
+RemoteException
+    + 
+FullyQualifiedErrorId : N  
+  ativeCommandError
+ 
+Failed to compile.
+
+./src/app/api/setup-db/rout
+e.ts:7:10
+Type error: Property 
+'execute' does not exist 
+on type 'Database'.
+
+[0m [90m  5 |[39m   
+[36mtry[39m {[0m
+[0m [90m  6 |[39m     
+[36mconst[39m 
+tablePromises [33m=[39m 
+[[0m
+[0m[31m[1m>[22m[39m[9
+0m  7 |[39m       db[33m.
+[39mexecute([32m`[39m[0
+m
+[0m [90m    |[39m       
+   [31m[1m^[22m[39m[0m
+[0m [90m  8 |[39m [32m 
+       CREATE TABLE IF NOT 
+EXISTS mesas ([39m[0m
+[0m [90m  9 |[39m [32m 
+         id INTEGER 
+PRIMARY KEY 
+AUTOINCREMENT,[39m[0m
+[0m [90m 10 |[39m [32m 
+         numero INTEGER 
+NOT NULL UNIQUE,[39m[0m
+Next.js build worker 
+exited with code: 1 and 
+signal: null

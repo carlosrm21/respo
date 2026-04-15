@@ -25,6 +25,7 @@ import { getEstadoCaja } from './actions/caja';
 import { getCombos } from './actions/combos';
 import { usePushNotifications, sendPushNotification } from '@/hooks/usePushNotifications';
 import { useTheme } from '@/hooks/useTheme';
+import { trackCampaignEvent } from '@/lib/campaignTracking';
 import {
   ChefHat, LogOut, TrendingUp, Users, ShoppingBag,
   Package, Settings, Activity, ExternalLink, Download, Bell, BellOff, Sun, Moon
@@ -77,6 +78,16 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
     // Load mesas from REST API (not server action to avoid SSR hydration issues)
     fetch('/api/mesas').then(r => r.json()).then(r => { if (r.success) setMesasData(r.data); });
     setCurrentTime(new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' }));
+
+    const url = new URL(window.location.href);
+    const paymentStatus = url.searchParams.get('payment');
+    if (paymentStatus === 'success') {
+      trackCampaignEvent('purchase_success');
+    }
+
+    if (paymentStatus === 'failure') {
+      trackCampaignEvent('purchase_failure');
+    }
   }, []);
 
   const refreshMesas = useCallback(async (): Promise<any[]> => {

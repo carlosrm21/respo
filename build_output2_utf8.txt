@@ -1,0 +1,223 @@
+﻿
+> restaurante-web@0.1.0 build
+> next build
+
+   Ôû▓ Next.js 15.3.0
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully in 1000ms
+   Linting and checking validity of types ...
+node.exe :  Ô¿» ESLint: 
+nextVitals is not iterable
+En línea: 1 Carácter: 1
++ & "C:\Program 
+Files\nodejs/node.exe" "C:\Users
+\carlos\AppData\Roaming ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo          : N 
+   otSpecified: ( Ô¿» ESLint:   
+  nextVitals is not iterable:   
+ String) [], RemoteException
+    + FullyQualifiedErrorId : N 
+   ativeCommandError
+ 
+   Collecting page data ...
+SqliteError: database is locked
+    at 5069 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+setup-db\route.js:1:312)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\webpack-runtime.js:1:14
+3)
+    at 21071 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+setup-db\route.js:1:714)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\webpack-runtime.js:1:14
+3)
+    at T (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\app\api\setup-db\route.
+js:125:2263)
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+setup-db\route.js:125:2294)
+    at t.X (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\webpack-
+runtime.js:1:1285)
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+setup-db\route.js:125:2276)
+    at Object.<anonymous> 
+(E:\APP INVENTARIO\app restauran
+te\restaurante-web\.next\server\
+app\api\setup-db\route.js:125:23
+22) {
+  code: 'SQLITE_BUSY'
+}
+SqliteError: database is locked
+    at 5069 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+mesas\route.js:1:312)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\webpack-runtime.js:1:14
+3)
+    at 93441 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+mesas\route.js:1:1152)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\webpack-runtime.js:1:14
+3)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\app\api\mesas\route.js:
+1:1916)
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+mesas\route.js:1:1947)
+    at t.X (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\webpack-
+runtime.js:1:1285)
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+mesas\route.js:1:1929)
+    at Object.<anonymous> 
+(E:\APP INVENTARIO\app restauran
+te\restaurante-web\.next\server\
+app\api\mesas\route.js:1:1975) {
+  code: 'SQLITE_BUSY'
+}
+SqliteError: database is locked
+    at 5069 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+migrate2\route.js:1:312)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\webpack-runtime.js:1:14
+3)
+    at 41906 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+migrate2\route.js:1:868)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\webpack-runtime.js:1:14
+3)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\app\api\migrate2\route.
+js:25:1022)
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+migrate2\route.js:25:1053)
+    at t.X (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\webpack-
+runtime.js:1:1285)
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+migrate2\route.js:25:1035)
+    at Object.<anonymous> 
+(E:\APP INVENTARIO\app restauran
+te\restaurante-web\.next\server\
+app\api\migrate2\route.js:25:108
+1) {
+  code: 'SQLITE_BUSY'
+}
+SqliteError: database is locked
+    at 5069 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+seed-inventario\route.js:1:312)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\webpack-runtime.js:1:14
+3)
+    at 47521 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+seed-inventario\route.js:1:970)
+    at t (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\webpack-runtime.js:1:14
+3)
+    at r (E:\APP INVENTARIO\app 
+restaurante\restaurante-web\.nex
+t\server\app\api\seed-inventario
+\route.js:13:2598)
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+seed-inventario\route.js:13:2629
+)
+    at t.X (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\webpack-
+runtime.js:1:1285)
+    at <unknown> (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\api\
+seed-inventario\route.js:13:2611
+)
+    at Object.<anonymous> 
+(E:\APP INVENTARIO\app restauran
+te\restaurante-web\.next\server\
+app\api\seed-inventario\route.js
+:13:2657) {
+  code: 'SQLITE_BUSY'
+}
+[Error: Failed to collect 
+configuration for /pos] {
+  [cause]: SqliteError: 
+database is locked
+      at 5069 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\pos\
+page.js:178:3056)
+      at t (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\webpack-
+runtime.js:1:143)
+      at 18364 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\pos\
+page.js:179:655)
+      at t (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\webpack-
+runtime.js:1:143)
+      at 7937 (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\app\pos\
+page.js:178:3199)
+      at t (E:\APP 
+INVENTARIO\app restaurante\resta
+urante-web\.next\server\webpack-
+runtime.js:1:143) {
+    code: 'SQLITE_BUSY'
+  }
+}
+
+> Build error occurred
+[Error: Failed to collect page 
+data for /api/setup-db] { type: 
+'Error' }

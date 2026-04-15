@@ -2,6 +2,36 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
+type ExecuteInput = string | { sql: string; args?: unknown[] };
+type ExecuteResult = {
+  rows: any[];
+  rowsAffected?: number;
+  lastInsertRowid?: number | bigint;
+};
+
+type AppDatabase = Database.Database & {
+  execute: (input: ExecuteInput) => Promise<ExecuteResult>;
+  executeMultiple: (sql: string) => Promise<void>;
+};
+
+const executeSql = (database: Database.Database, input: ExecuteInput): ExecuteResult => {
+  const sql = typeof input === 'string' ? input : input.sql;
+  const args = typeof input === 'string' ? [] : (input.args ?? []);
+  const statement = database.prepare(sql);
+  const normalizedSql = sql.trim().toUpperCase();
+
+  if (normalizedSql.startsWith('SELECT') || normalizedSql.startsWith('PRAGMA') || normalizedSql.startsWith('WITH')) {
+    return { rows: statement.all(...args) as any[] };
+  }
+
+  const runResult = statement.run(...args);
+  return {
+    rows: [],
+    rowsAffected: runResult.changes,
+    lastInsertRowid: runResult.lastInsertRowid
+  };
+};
+
 // Initialize the database connection
 const initDb = () => {
     // Ensure the data directory exists
@@ -163,15 +193,25 @@ const initDb = () => {
 };
 
 // Singleton pattern for Next.js (so we don't open multiple connections during hot-reloads)
-let db: Database.Database;
+let db: AppDatabase;
 
 if (process.env.NODE_ENV === 'production') {
-    db = initDb();
+  const initializedDb = initDb();
+  (initializedDb as AppDatabase).execute = async (input: ExecuteInput) => executeSql(initializedDb, input);
+  (initializedDb as AppDatabase).executeMultiple = async (sql: string) => {
+    initializedDb.exec(sql);
+  };
+  db = initializedDb as AppDatabase;
 } else {
     if (!(global as any).sqliteDb) {
-        (global as any).sqliteDb = initDb();
+    const initializedDb = initDb();
+    (initializedDb as AppDatabase).execute = async (input: ExecuteInput) => executeSql(initializedDb, input);
+    (initializedDb as AppDatabase).executeMultiple = async (sql: string) => {
+      initializedDb.exec(sql);
+    };
+    (global as any).sqliteDb = initializedDb;
     }
-    db = (global as any).sqliteDb;
+  db = (global as any).sqliteDb as AppDatabase;
 }
 
 export default db;
