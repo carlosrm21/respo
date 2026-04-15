@@ -132,6 +132,8 @@ body {
   border: 1px solid transparent;
   white-space: nowrap;
   font-family: inherit;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btn-primary {
@@ -141,6 +143,7 @@ body {
   box-shadow: var(--shadow-sm);
 }
 .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: var(--shadow-accent); }
+.btn-primary:active { transform: translateY(0) scale(0.98); }
 
 .btn-ghost {
   background: transparent;
@@ -148,6 +151,7 @@ body {
   border-color: transparent;
 }
 .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+.btn-ghost:active { transform: scale(0.98); }
 
 .btn-outline {
   background: transparent;
@@ -155,6 +159,13 @@ body {
   border-color: var(--border-active);
 }
 .btn-outline:hover { background: var(--surface-2); }
+.btn-outline:active { transform: scale(0.98); }
+
+.btn:focus-visible,
+.input:focus-visible {
+  outline: 2px solid var(--accent-hover);
+  outline-offset: 2px;
+}
 
 /* === INPUTS === */
 .input {
@@ -685,5 +696,23 @@ body {
 
   .card {
     border-radius: 14px;
+  }
+}
+
+@media (hover: none) {
+  .btn-primary:hover,
+  .btn-ghost:hover,
+  .btn-outline:hover {
+    transform: none;
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
