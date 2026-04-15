@@ -6,6 +6,8 @@ import { appendTrackingToUrl, captureCampaignTracking, trackCampaignEvent } from
 
 export default function LandingUI() {
   const PAYMENT_URL = 'https://mpago.li/2cBBftf';
+  const SALES_WHATSAPP = '3242877331';
+  const SALES_WHATSAPP_URL = `https://wa.me/57${SALES_WHATSAPP}?text=${encodeURIComponent('Hola, quiero informacion de RestoPOS y la prueba de 7 dias.')}`;
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -144,7 +146,17 @@ export default function LandingUI() {
         "@type": "Organization",
         "name": "Movilcom Tecnology Solution",
         "url": "https://www.movilcomts.com",
-        "logo": "https://restopos.movilcomts.com/logo.png"
+        "logo": "https://restopos.movilcomts.com/logo.png",
+        "contactPoint": [
+          {
+            "@type": "ContactPoint",
+            "contactType": "sales",
+            "telephone": "+57 3242877331",
+            "availableLanguage": ["Spanish"],
+            "areaServed": "CO",
+            "url": "https://wa.me/573242877331"
+          }
+        ]
       },
       {
         "@type": "WebSite",
@@ -1218,9 +1230,10 @@ export default function LandingUI() {
             <p style={{ color: '#94a3b8', fontSize: 14, lineHeight: 1.65, marginBottom: 20 }}>
               Sistema POS premium líder en la gestión de alta eficiencia y control exacto para restaurantes en toda la región.
             </p>
-            <a href="https://www.movilcomts.com" aria-label="Contactar al equipo de ventas" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#7dd3fc', fontSize: 14, textDecoration: 'none', fontWeight: 600 }}>
+            <a href={SALES_WHATSAPP_URL} aria-label="Contactar por WhatsApp al equipo de ventas" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#7dd3fc', fontSize: 14, textDecoration: 'none', fontWeight: 600 }}>
               <MessageCircle size={16} /> Contactar a Ventas
             </a>
+            <p style={{ color: '#64748b', fontSize: 12, marginTop: 8, marginBottom: 0 }}>WhatsApp: +57 324 287 7331</p>
           </div>
 
           <div>
