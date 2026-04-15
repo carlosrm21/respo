@@ -24,7 +24,7 @@ export default function Staff() {
     e.preventDefault();
     setLoading(true);
     if (editId) {
-      await updateMesero(editId, form.nombre, 1);
+      await updateMesero(editId, form.nombre, 1, form.pin);
     } else {
       await addMesero(form.nombre, form.pin);
     }
@@ -111,12 +111,20 @@ export default function Staff() {
                 <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-2)', display: 'block', marginBottom: 5 }}>Nombre completo *</label>
                 <input className="input" required value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} placeholder="Ej: Carlos Rodríguez" />
               </div>
-              {!editId && (
-                <div>
-                  <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-2)', display: 'block', marginBottom: 5 }}>PIN de acceso (4 dígitos)</label>
-                  <input className="input" type="password" maxLength={4} value={form.pin} onChange={e => setForm(f => ({ ...f, pin: e.target.value }))} placeholder="••••" style={{ letterSpacing: '0.5em', fontSize: 20 }} />
-                </div>
-              )}
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 500, color: 'var(--text-2)', display: 'block', marginBottom: 5 }}>
+                  {editId ? 'Nuevo PIN (opcional)' : 'PIN de acceso (4 dígitos)'}
+                </label>
+                <input
+                  className="input"
+                  type="password"
+                  maxLength={4}
+                  value={form.pin}
+                  onChange={e => setForm(f => ({ ...f, pin: e.target.value.replace(/\D/g, '').slice(0, 4) }))}
+                  placeholder="••••"
+                  style={{ letterSpacing: '0.5em', fontSize: 20 }}
+                />
+              </div>
               <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
                 <button type="button" onClick={() => { setShowForm(false); setForm(EMPTY); }} className="btn btn-outline" style={{ flex: 1 }}>Cancelar</button>
                 <button type="submit" disabled={loading} className="btn btn-primary" style={{ flex: 1 }}>

@@ -1,14 +1,10 @@
 'use client';
 import { useState } from 'react';
-import { ChefHat, Lock, ArrowRight, Loader2, LayoutGrid, Users, UtensilsCrossed } from 'lucide-react';
+import { Lock, ArrowRight, Loader2, LayoutGrid, Users, UtensilsCrossed } from 'lucide-react';
+import { loginWithPin } from '@/app/actions/auth';
 
 type Role = 'admin' | 'waiter' | 'kitchen';
-
-const PINS: Record<Role, string[]> = {
-  admin:   ['1234', '0000'],
-  waiter:  ['1234', '0000'],
-  kitchen: ['5678', '0000'],
-};
+const SHOW_LOGIN_HINTS = process.env.NODE_ENV !== 'production' && process.env.NEXT_PUBLIC_SHOW_LOGIN_HINTS === 'true';
 
 const ROLES = [
   {
@@ -41,234 +37,545 @@ export default function Login({ onLogin }: { onLogin: (role: Role) => void }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const selectedRoleConfig = selectedRole ? ROLES.find((role) => role.id === selectedRole) : null;
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedRole) return;
     setLoading(true);
-    await new Promise(r => setTimeout(r, 600));
-    const validPins = PINS[selectedRole!] || [];
-    if (validPins.includes(pin)) {
-      onLogin(selectedRole!);
+    const result = await loginWithPin(selectedRole, pin);
+    if (result.success) {
+      onLogin(selectedRole);
     } else {
-      setError(selectedRole === 'kitchen' ? 'PIN incorrecto. PIN de cocina: 5678' : 'PIN incorrecto. Prueba con 1234');
+      setError(result.message || 'No fue posible iniciar sesión con este PIN.');
       setLoading(false);
       setPin('');
     }
   };
 
-  if (!selectedRole) {
-    return (
-      <div
-        className="pos-login-screen"
-        style={{
-          background: 'radial-gradient(900px 500px at 20% -10%, rgba(99,102,241,0.22), transparent 55%), radial-gradient(700px 420px at 100% 100%, rgba(234,88,12,0.14), transparent 60%), var(--bg)',
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '24px',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
-        <style>{`
-          @keyframes posFloat {
-            0%, 100% { transform: translateY(0px); opacity: 0.9; }
-            50% { transform: translateY(-10px); opacity: 1; }
-          }
-          @keyframes posCardIn {
-            from { opacity: 0; transform: translateY(8px) scale(0.99); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-          }
-          .pos-blob-a,
-          .pos-blob-b {
-            position: absolute;
-            border-radius: 999px;
-            pointer-events: none;
-            filter: blur(8px);
-            animation: posFloat 6s ease-in-out infinite;
-          }
-          .pos-blob-a {
-            width: 220px;
-            height: 220px;
-            left: -60px;
-            top: 40px;
-            background: radial-gradient(circle, rgba(99,102,241,0.35) 0%, rgba(99,102,241,0.02) 70%);
-          }
-          .pos-blob-b {
-            width: 180px;
-            height: 180px;
-            right: -40px;
-            bottom: 50px;
-            background: radial-gradient(circle, rgba(234,88,12,0.28) 0%, rgba(234,88,12,0.02) 70%);
-            animation-delay: 1.4s;
-          }
-          .pos-login-shell {
-            width: 100%;
-            max-width: 560px;
-            position: relative;
-            z-index: 2;
-          }
-          .pos-login-role-card {
-            animation: posCardIn 420ms cubic-bezier(0.22,1,0.36,1) both;
-          }
-          @media (max-width: 640px) {
-            .pos-login-screen { padding: 16px !important; }
-            .pos-login-panel { padding: 18px !important; border-radius: 16px !important; }
-            .pos-login-headline { font-size: 29px !important; line-height: 1.08 !important; }
-            .pos-login-meta-grid { grid-template-columns: 1fr !important; gap: 8px !important; }
-            .pos-login-role-card { padding: 14px 14px !important; }
-          }
-        `}</style>
-        <div className="pos-blob-a" />
-        <div className="pos-blob-b" />
-        <div className="pos-login-shell anim-fade-up">
-          <div
-            className="pos-login-panel"
-            style={{
-              background: 'linear-gradient(165deg, rgba(24,24,27,0.92) 0%, rgba(24,24,27,0.78) 100%)',
-              border: '1px solid var(--border)',
-              borderRadius: '20px',
-              boxShadow: '0 24px 56px rgba(0,0,0,0.45)',
-              backdropFilter: 'blur(16px)',
-              padding: '26px'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 20 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 42, height: 42, background: 'linear-gradient(135deg, #6366f1 0%, #818cf8 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 10px 24px rgba(99,102,241,0.35)' }}>
-                  <ChefHat size={21} color="white" />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 750, fontSize: 18, letterSpacing: '-0.02em' }}>RestoPOS</div>
-                  <div style={{ fontSize: 11, color: 'var(--text-3)', letterSpacing: '0.07em', textTransform: 'uppercase' }}>Operations Login</div>
-                </div>
-              </div>
-              <span style={{ fontSize: 11, color: '#a5b4fc', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)', borderRadius: 999, padding: '5px 10px', fontWeight: 600 }}>
-                Acceso Seguro
-              </span>
-            </div>
-
-            <h1 className="pos-login-headline" style={{ fontSize: 34, lineHeight: 1.06, fontWeight: 760, letterSpacing: '-0.04em', marginBottom: 10 }}>
-              Bienvenido al centro de control
-            </h1>
-            <p style={{ color: 'var(--text-2)', fontSize: 14.5, marginBottom: 26 }}>
-              Elige tu perfil para iniciar. Cada rol muestra solo lo que necesitas para operar rapido y sin errores.
-            </p>
-
-            <div className="pos-login-meta-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 10, marginBottom: 18 }}>
-              <div style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.28)', borderRadius: 12, padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#a5b4fc', marginBottom: 3 }}>Rol</div>
-                <div style={{ fontSize: 14, fontWeight: 650 }}>Administrador</div>
-              </div>
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 3 }}>Rol</div>
-                <div style={{ fontSize: 14, fontWeight: 650 }}>Mesero</div>
-              </div>
-              <div style={{ background: 'rgba(234,88,12,0.1)', border: '1px solid rgba(234,88,12,0.28)', borderRadius: 12, padding: '10px 12px' }}>
-                <div style={{ fontSize: 11, color: '#fdba74', marginBottom: 3 }}>Rol</div>
-                <div style={{ fontSize: 14, fontWeight: 650 }}>Cocina</div>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {ROLES.map((role, index) => {
-                const IconComponent = role.icon;
-                const iconBg = role.accent
-                  ? 'var(--accent-muted)' : role.orange
-                  ? 'rgba(234,88,12,0.14)' : 'var(--surface-2)';
-                const iconBorder = role.accent
-                  ? 'var(--accent-border)' : role.orange
-                  ? 'rgba(234,88,12,0.35)' : 'var(--border-active)';
-                const iconColor = role.accent
-                  ? 'var(--accent-hover)' : role.orange
-                  ? '#f97316' : 'var(--text-2)';
-                return (
-                  <button key={role.id}
-                    className="pos-login-role-card"
-                    onClick={() => setSelectedRole(role.id)}
-                    style={{ width: '100%', textAlign: 'left', padding: '18px 18px', background: 'linear-gradient(180deg, rgba(39,39,42,0.7), rgba(24,24,27,0.9))', border: '1px solid var(--border)', borderRadius: '14px', cursor: 'pointer', transition: 'all 180ms ease', display: 'flex', alignItems: 'center', gap: 14, animationDelay: `${100 + index * 70}ms` }}
-                    onMouseEnter={e => {
-                      const el = e.currentTarget as HTMLElement;
-                      el.style.transform = 'translateY(-2px)';
-                      el.style.borderColor = role.accent ? 'var(--accent-border)' : role.orange ? 'rgba(234,88,12,0.45)' : 'var(--border-active)';
-                      el.style.boxShadow = role.accent ? '0 10px 24px rgba(99,102,241,0.18)' : role.orange ? '0 10px 24px rgba(234,88,12,0.16)' : 'var(--shadow-sm)';
-                    }}
-                    onMouseLeave={e => {
-                      const el = e.currentTarget as HTMLElement;
-                      el.style.transform = 'translateY(0)';
-                      el.style.borderColor = 'var(--border)';
-                      el.style.boxShadow = 'none';
-                    }}
-                  >
-                    <div style={{ width: 42, height: 42, background: iconBg, border: `1px solid ${iconBorder}`, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <IconComponent size={18} color={iconColor} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 700, fontSize: 15.5, marginBottom: 4 }}>{role.label}</div>
-                      <div style={{ color: 'var(--text-3)', fontSize: 12.5, lineHeight: 1.4 }}>{role.desc}</div>
-                    </div>
-                    <ArrowRight size={16} color="var(--text-3)" />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const roleLabel = selectedRole === 'admin' ? 'administrador' : selectedRole === 'waiter' ? 'mesero' : 'cocina';
-  const roleHint = selectedRole === 'kitchen' ? 'PIN: 5678' : 'PIN: 1234';
+  const roleLabel = selectedRoleConfig?.label || 'Acceso';
+  const roleDescription = selectedRoleConfig?.desc || 'Acceso operativo';
+  const roleHint = SHOW_LOGIN_HINTS
+    ? selectedRole === 'kitchen'
+      ? 'PIN de desarrollo: 5678'
+      : 'PIN de desarrollo: 1234'
+    : null;
 
   return (
-    <div style={{ background: 'radial-gradient(900px 500px at 20% -10%, rgba(99,102,241,0.2), transparent 55%), radial-gradient(700px 420px at 100% 100%, rgba(234,88,12,0.12), transparent 60%), var(--bg)', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ width: '100%', maxWidth: '400px' }} className="anim-fade-up">
-        <button onClick={() => { setSelectedRole(null); setPin(''); setError(''); }} style={{ background: 'none', border: 'none', color: 'var(--text-3)', cursor: 'pointer', fontSize: 13, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 6 }}>
-          ← Volver
-        </button>
+    <div
+      className="glass-login-screen"
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '28px',
+        position: 'relative',
+        overflow: 'hidden',
+        background: 'radial-gradient(900px 540px at 82% 12%, rgba(37,99,235,0.34), transparent 55%), radial-gradient(760px 460px at 18% 92%, rgba(249,115,22,0.18), transparent 58%), radial-gradient(520px 320px at 55% 45%, rgba(124,58,237,0.12), transparent 60%), linear-gradient(135deg, #071525 0%, #0a2b56 45%, #0b4a8f 100%)'
+      }}
+    >
+      <style>{`
+        @keyframes glassFloat {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-10px) rotate(2deg); }
+        }
+        @keyframes glassAppear {
+          from { opacity: 0; transform: translateY(14px) scale(0.985); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .glass-login-screen::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+          background-size: 28px 28px;
+          opacity: 0.22;
+          pointer-events: none;
+        }
+        .glass-shape {
+          position: absolute;
+          pointer-events: none;
+          border-radius: 999px;
+          background: linear-gradient(135deg, rgba(255,255,255,0.28), rgba(255,255,255,0.02));
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.18), 0 24px 40px rgba(3, 7, 18, 0.22);
+          filter: blur(0.2px);
+          animation: glassFloat 7s ease-in-out infinite;
+        }
+        .glass-shape-a { width: 132px; height: 34px; top: 16%; left: 12%; transform: rotate(-42deg); opacity: 0.5; }
+        .glass-shape-b { width: 108px; height: 32px; top: 23%; left: 26%; transform: rotate(42deg); animation-delay: 1s; opacity: 0.58; }
+        .glass-shape-c { width: 168px; height: 42px; bottom: 20%; right: 11%; transform: rotate(26deg); animation-delay: 1.5s; opacity: 0.46; }
+        .glass-shape-d { width: 180px; height: 42px; bottom: 12%; left: 8%; transform: rotate(-34deg); animation-delay: 2s; opacity: 0.3; }
+        .glass-shape-e { width: 200px; height: 48px; top: 18%; right: 16%; transform: rotate(-58deg); animation-delay: 2.4s; opacity: 0.24; }
+        .glass-login-shell {
+          width: min(1080px, 100%);
+          position: relative;
+          z-index: 2;
+          animation: glassAppear 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .glass-login-frame {
+          background: linear-gradient(180deg, rgba(7,35,74,0.62), rgba(5,29,64,0.5));
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 30px;
+          padding: clamp(20px, 3vw, 34px);
+          backdrop-filter: blur(18px);
+          box-shadow: 0 36px 90px rgba(2, 6, 23, 0.44), inset 0 1px 0 rgba(255,255,255,0.12);
+          position: relative;
+          overflow: hidden;
+        }
+        .glass-login-frame::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(460px 180px at 8% 10%, rgba(255,255,255,0.08), transparent 70%);
+          pointer-events: none;
+        }
+        .glass-login-grid {
+          display: grid;
+          grid-template-columns: minmax(280px, 1.05fr) minmax(320px, 430px);
+          gap: clamp(20px, 4vw, 54px);
+          align-items: center;
+          position: relative;
+          z-index: 2;
+        }
+        .glass-brand-block {
+          padding: clamp(8px, 1vw, 14px);
+          color: #eff6ff;
+        }
+        .glass-brand-header {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 18px;
+          padding: 10px 14px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.08);
+          border: 1px solid rgba(125,211,252,0.2);
+        }
+        .glass-brand-logo {
+          width: clamp(96px, 10vw, 122px);
+          height: clamp(96px, 10vw, 122px);
+          border-radius: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.04));
+          border: 1px solid rgba(255,255,255,0.24);
+          box-shadow: 0 24px 54px rgba(2, 6, 23, 0.35), inset 0 1px 0 rgba(255,255,255,0.16);
+          margin-bottom: 22px;
+        }
+        .glass-brand-logo img {
+          width: 78%;
+          height: 78%;
+          object-fit: contain;
+          filter: drop-shadow(0 10px 18px rgba(255,255,255,0.1));
+        }
+        .glass-brand-title {
+          margin: 0 0 12px;
+          font-size: clamp(34px, 5vw, 62px);
+          line-height: 0.98;
+          letter-spacing: -0.05em;
+          font-weight: 800;
+          max-width: 440px;
+          font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+        }
+        .glass-brand-title span {
+          display: block;
+          color: rgba(255,255,255,0.78);
+          font-size: clamp(18px, 2vw, 24px);
+          letter-spacing: -0.02em;
+          margin-top: 10px;
+        }
+        .glass-brand-copy {
+          margin: 0 0 18px;
+          max-width: 420px;
+          color: rgba(226,232,240,0.84);
+          font-size: 15px;
+          line-height: 1.7;
+        }
+        .glass-brand-pills {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+        }
+        .glass-brand-pill {
+          padding: 10px 14px;
+          border-radius: 999px;
+          background: rgba(8, 24, 48, 0.34);
+          border: 1px solid rgba(255,255,255,0.16);
+          color: #e0f2fe;
+          font-size: 12px;
+          font-weight: 600;
+        }
+        .glass-login-card {
+          position: relative;
+          background: linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.08));
+          border: 1px solid rgba(255,255,255,0.24);
+          border-radius: 28px;
+          padding: clamp(22px, 2.6vw, 28px);
+          backdrop-filter: blur(20px);
+          box-shadow: 0 26px 70px rgba(2, 6, 23, 0.44), inset 0 1px 0 rgba(255,255,255,0.16);
+        }
+        .glass-login-card::before {
+          content: '';
+          position: absolute;
+          inset: 10px;
+          border-radius: 22px;
+          border: 1px solid rgba(255,255,255,0.08);
+          pointer-events: none;
+        }
+        .glass-login-card-header {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        .glass-mini-logo {
+          width: 58px;
+          height: 58px;
+          margin: 0 auto 14px;
+          border-radius: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06));
+          border: 1px solid rgba(255,255,255,0.24);
+        }
+        .glass-mini-logo img { width: 70%; height: 70%; object-fit: contain; }
+        .glass-card-title {
+          margin: 0 0 6px;
+          font-size: 26px;
+          font-weight: 800;
+          color: #fff;
+          letter-spacing: -0.03em;
+          font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+        }
+        .glass-card-subtitle {
+          margin: 0;
+          color: rgba(226,232,240,0.78);
+          font-size: 13px;
+          line-height: 1.5;
+        }
+        .glass-role-list {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
+        .glass-role-card {
+          width: 100%;
+          text-align: left;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 16px;
+          border-radius: 18px;
+          background: linear-gradient(180deg, rgba(4,22,44,0.4), rgba(5,19,38,0.24));
+          border: 1px solid rgba(255,255,255,0.12);
+          cursor: pointer;
+          transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+          color: inherit;
+        }
+        .glass-role-card:hover {
+          transform: translateY(-2px);
+          border-color: rgba(255,255,255,0.24);
+          box-shadow: 0 18px 30px rgba(3, 7, 18, 0.18);
+        }
+        .glass-role-icon {
+          width: 46px;
+          height: 46px;
+          border-radius: 15px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.18);
+        }
+        .glass-role-copy strong {
+          display: block;
+          color: #fff;
+          font-size: 15px;
+          margin-bottom: 4px;
+        }
+        .glass-role-copy span {
+          display: block;
+          color: rgba(226,232,240,0.72);
+          font-size: 12px;
+          line-height: 1.45;
+        }
+        .glass-back-button {
+          background: none;
+          border: none;
+          color: rgba(226,232,240,0.82);
+          cursor: pointer;
+          font-size: 13px;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 14px;
+          padding: 0;
+        }
+        .glass-form-label {
+          display: block;
+          color: rgba(226,232,240,0.82);
+          font-size: 12px;
+          margin-bottom: 8px;
+          font-weight: 600;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
+        .glass-pin-input {
+          width: 100%;
+          border: 1px solid rgba(255,255,255,0.16);
+          border-radius: 16px;
+          background: rgba(7,20,40,0.34);
+          color: #fff;
+          font-size: 28px;
+          letter-spacing: 0.48em;
+          text-align: center;
+          padding: 16px 14px;
+          outline: none;
+          transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+        }
+        .glass-pin-input:focus {
+          border-color: rgba(125,211,252,0.56);
+          box-shadow: 0 0 0 4px rgba(56,189,248,0.12);
+          background: rgba(7,20,40,0.48);
+        }
+        .glass-submit-button {
+          width: 100%;
+          margin-top: 4px;
+          border: none;
+          border-radius: 16px;
+          padding: 14px 18px;
+          font-size: 14px;
+          font-weight: 700;
+          color: #fff;
+          cursor: pointer;
+          background: linear-gradient(135deg, #f97316, #7c3aed 52%, #2563eb);
+          box-shadow: 0 16px 30px rgba(37, 99, 235, 0.28);
+          transition: transform 180ms ease, filter 180ms ease, opacity 180ms ease;
+        }
+        .glass-submit-button:hover:not(:disabled) {
+          transform: translateY(-1px);
+          filter: brightness(1.05);
+        }
+        .glass-submit-button:disabled {
+          opacity: 0.46;
+          cursor: not-allowed;
+          box-shadow: none;
+        }
+        .glass-error {
+          padding: 11px 13px;
+          border-radius: 14px;
+          background: rgba(127,29,29,0.28);
+          border: 1px solid rgba(248,113,113,0.28);
+          color: #fecaca;
+          font-size: 13px;
+        }
+        .glass-security-row {
+          margin-top: 14px;
+          padding-top: 14px;
+          border-top: 1px solid rgba(255,255,255,0.12);
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+          color: rgba(226,232,240,0.66);
+          font-size: 11px;
+          flex-wrap: wrap;
+        }
+        .glass-card-footnote {
+          margin-top: 14px;
+          color: rgba(226,232,240,0.72);
+          font-size: 12px;
+          text-align: center;
+        }
+        @media (max-width: 920px) {
+          .glass-login-grid {
+            grid-template-columns: 1fr;
+          }
+          .glass-brand-block {
+            text-align: center;
+          }
+          .glass-brand-logo {
+            margin-left: auto;
+            margin-right: auto;
+          }
+          .glass-brand-copy {
+            margin-left: auto;
+            margin-right: auto;
+          }
+          .glass-brand-pills {
+            justify-content: center;
+          }
+          .glass-login-card {
+            max-width: 480px;
+            margin: 0 auto;
+          }
+        }
+        @media (max-width: 640px) {
+          .glass-login-screen {
+            padding: 16px !important;
+          }
+          .glass-shape-c,
+          .glass-shape-d,
+          .glass-shape-e {
+            display: none;
+          }
+          .glass-login-frame {
+            border-radius: 24px;
+            padding: 16px;
+          }
+          .glass-login-card {
+            border-radius: 22px;
+            padding: 18px;
+          }
+          .glass-brand-title {
+            font-size: 34px;
+            line-height: 1.02;
+          }
+          .glass-brand-copy {
+            font-size: 14px;
+            line-height: 1.6;
+          }
+          .glass-brand-pills {
+            gap: 8px;
+          }
+          .glass-brand-pill {
+            padding: 9px 12px;
+            font-size: 11px;
+          }
+          .glass-pin-input {
+            font-size: 24px;
+            padding: 15px 12px;
+          }
+          .glass-security-row {
+            justify-content: center;
+            text-align: center;
+          }
+        }
+      `}</style>
 
-        <div style={{ background: 'linear-gradient(165deg, rgba(24,24,27,0.9) 0%, rgba(24,24,27,0.78) 100%)', border: '1px solid var(--border)', borderRadius: 20, boxShadow: '0 24px 56px rgba(0,0,0,0.45)', backdropFilter: 'blur(16px)', padding: 24 }}>
-          <div style={{ width: 46, height: 46, background: selectedRole === 'kitchen' ? 'rgba(234,88,12,0.14)' : 'var(--accent-muted)', border: `1px solid ${selectedRole === 'kitchen' ? 'rgba(234,88,12,0.28)' : 'var(--accent-border)'}`, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-            <Lock size={20} color={selectedRole === 'kitchen' ? '#f97316' : 'var(--accent-hover)'} />
-          </div>
+      <div className="glass-shape glass-shape-a" />
+      <div className="glass-shape glass-shape-b" />
+      <div className="glass-shape glass-shape-c" />
+      <div className="glass-shape glass-shape-d" />
+      <div className="glass-shape glass-shape-e" />
 
-          <h2 style={{ fontSize: 28, fontWeight: 750, letterSpacing: '-0.03em', marginBottom: 7 }}>Ingresa tu PIN</h2>
-          <p style={{ color: 'var(--text-2)', fontSize: 14, marginBottom: 20 }}>
-            Acceso de <strong style={{ color: 'var(--text)' }}>{roleLabel}</strong>
-          </p>
-
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <input
-              type="password"
-              maxLength={4}
-              value={pin}
-              onChange={e => { setPin(e.target.value); setError(''); }}
-              placeholder="••••"
-              autoFocus
-              className="input"
-              style={{ fontSize: 30, letterSpacing: '0.52em', textAlign: 'center', padding: '16px 14px', background: 'rgba(39,39,42,0.8)' }}
-            />
-            {error && (
-              <div style={{ padding: '10px 14px', background: 'var(--red-muted)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 'var(--r-md)', color: 'var(--red)', fontSize: 13 }}>
-                {error}
+      <div className="glass-login-shell">
+        <div className="glass-login-frame">
+          <div className="glass-login-grid">
+            <div className="glass-brand-block">
+              <div className="glass-brand-header">
+                <img src="/logo.png" alt="Logo RestoPOS" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: '#e0f2fe' }}>RestoPOS Access</span>
               </div>
-            )}
-            <button type="submit" disabled={loading || pin.length < 4} className="btn btn-primary" style={{ marginTop: 6, padding: '12px 18px', opacity: pin.length < 4 ? 0.45 : 1, fontSize: 14.5, background: selectedRole === 'kitchen' ? '#ea580c' : undefined, borderColor: selectedRole === 'kitchen' ? '#ea580c' : undefined }}>
-              {loading ? <><Loader2 size={15} className="animate-spin" /> Verificando...</> : 'Continuar →'}
-            </button>
-            <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>{roleHint}</p>
-          </form>
 
-          <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--border)', display: 'flex', justifyContent: 'space-between', gap: 10, color: 'var(--text-3)', fontSize: 11.5 }}>
-            <span>Sesion cifrada</span>
-            <span>Control por rol</span>
-            <span>PIN de 4 digitos</span>
+              <div className="glass-brand-logo">
+                <img src="/logo.png" alt="Logo dominante de RestoPOS" />
+              </div>
+
+              <h1 className="glass-brand-title">
+                Ingresa al sistema
+                <span>control operativo para restaurantes</span>
+              </h1>
+
+              <p className="glass-brand-copy">
+                Una experiencia de acceso más visual, más clara y coherente con la marca RestoPOS. Elige tu perfil y entra directo al flujo que te corresponde.
+              </p>
+
+              <div className="glass-brand-pills">
+                <span className="glass-brand-pill">Diseño glass</span>
+                <span className="glass-brand-pill">Acceso por rol</span>
+                <span className="glass-brand-pill">PIN seguro</span>
+              </div>
+            </div>
+
+            <div className="glass-login-card">
+              {!selectedRole ? (
+                <>
+                  <div className="glass-login-card-header">
+                    <div className="glass-mini-logo">
+                      <img src="/logo.png" alt="Logo RestoPOS" />
+                    </div>
+                    <h2 className="glass-card-title">Selecciona tu acceso</h2>
+                    <p className="glass-card-subtitle">Cada perfil abre un módulo preparado para su trabajo diario.</p>
+                  </div>
+
+                  <div className="glass-role-list">
+                    {ROLES.map((role) => {
+                      const IconComponent = role.icon;
+                      const iconColor = role.accent ? '#7dd3fc' : role.orange ? '#fdba74' : '#cbd5e1';
+
+                      return (
+                        <button key={role.id} type="button" className="glass-role-card" onClick={() => setSelectedRole(role.id)}>
+                          <div className="glass-role-icon">
+                            <IconComponent size={18} color={iconColor} />
+                          </div>
+                          <div className="glass-role-copy" style={{ flex: 1 }}>
+                            <strong>{role.label}</strong>
+                            <span>{role.desc}</span>
+                          </div>
+                          <ArrowRight size={16} color="rgba(226,232,240,0.7)" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="glass-back-button" onClick={() => { setSelectedRole(null); setPin(''); setError(''); }}>
+                    ← Volver a perfiles
+                  </button>
+
+                  <div className="glass-login-card-header" style={{ marginBottom: 18 }}>
+                    <div className="glass-mini-logo">
+                      <img src="/logo.png" alt="Logo RestoPOS" />
+                    </div>
+                    <h2 className="glass-card-title">{roleLabel}</h2>
+                    <p className="glass-card-subtitle">{roleDescription}</p>
+                  </div>
+
+                  <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div>
+                      <label className="glass-form-label" htmlFor="role-pin">PIN de acceso</label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          id="role-pin"
+                          type="password"
+                          maxLength={4}
+                          value={pin}
+                          onChange={e => { setPin(e.target.value); setError(''); }}
+                          placeholder="••••"
+                          autoFocus
+                          className="glass-pin-input"
+                        />
+                        <div style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', width: 34, height: 34, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
+                          <Lock size={16} color="rgba(226,232,240,0.84)" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {error ? <div className="glass-error">{error}</div> : null}
+
+                    <button type="submit" disabled={loading || pin.length < 4} className="glass-submit-button">
+                      {loading ? <><Loader2 size={15} className="animate-spin" /> Verificando...</> : 'Ingresar al sistema'}
+                    </button>
+
+                    {roleHint ? (
+                      <p style={{ textAlign: 'center', fontSize: 12, color: 'rgba(226,232,240,0.68)', margin: 0 }}>{roleHint}</p>
+                    ) : null}
+                  </form>
+                </>
+              )}
+
+              <div className="glass-security-row">
+                <span>Sesión cifrada</span>
+                <span>Control por rol</span>
+                <span>PIN de 4 dígitos</span>
+              </div>
+
+              <div className="glass-card-footnote">RestoPOS Management System</div>
+            </div>
           </div>
-        </div>
-
-        <div style={{ marginTop: 12, textAlign: 'center', color: 'var(--text-3)', fontSize: 11 }}>
-          RestoPOS Management System
         </div>
       </div>
     </div>

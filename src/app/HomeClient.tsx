@@ -28,7 +28,8 @@ import { useTheme } from '@/hooks/useTheme';
 import { trackCampaignEvent } from '@/lib/campaignTracking';
 import {
   ChefHat, LogOut, TrendingUp, Users, ShoppingBag,
-  Package, Settings, Activity, ExternalLink, Download, Bell, BellOff, Sun, Moon
+  Package, Settings, Activity, ExternalLink, Download, Bell, BellOff, Sun, Moon,
+  BarChart3, Wallet, Receipt, CalendarDays, QrCode, Shield, FileText, ArrowUpRight, LayoutDashboard
 } from 'lucide-react';
 
 const SECTION_LABELS: Record<string, string> = {
@@ -140,8 +141,8 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
       <div style={{ background: 'var(--bg)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <header style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, background: '#ea580c', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <ChefHat size={16} color="white" />
+            <div className="brand-mark brand-mark-sm">
+              <img src="/logo.png" alt="RestoPOS" className="brand-mark-image" />
             </div>
             <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>RestoPOS</span>
             <span style={{ fontSize: 11, background: 'rgba(234,88,12,0.1)', padding: '3px 10px', borderRadius: 999, border: '1px solid rgba(234,88,12,0.25)', color: '#ea580c' }}>Cocina</span>
@@ -164,10 +165,81 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
 
   /* ── ADMIN ── */
   if (role === 'admin') {
-    const stats = [
-      { label: 'Ventas hoy', value: '$2,450', change: '+12%', icon: TrendingUp, color: 'var(--accent)' },
-      { label: 'Pedidos activos', value: '12', change: 'en este momento', icon: ShoppingBag, color: 'var(--green)' },
-      { label: 'Personal en turno', value: '4', change: 'de 6 total', icon: Users, color: 'var(--amber)' },
+    const totalMesas = mesasData.length;
+    const mesasOcupadas = mesasData.filter((mesa: any) => mesa.estado === 'ocupada').length;
+    const mesasReservadas = mesasData.filter((mesa: any) => mesa.estado === 'reservada').length;
+    const mesasLibres = Math.max(totalMesas - mesasOcupadas - mesasReservadas, 0);
+    const ocupacion = totalMesas ? Math.round((mesasOcupadas / totalMesas) * 100) : 0;
+    const reservasPct = totalMesas ? Math.round((mesasReservadas / totalMesas) * 100) : 0;
+    const actions = [
+      { label: 'Analíticas', description: 'Rendimiento por ventas, ticket y mesero.', section: 'analytics', icon: BarChart3 },
+      { label: 'Tesorería', description: 'Apertura, cierre y control de caja.', section: 'caja', icon: Wallet },
+      { label: 'Historial', description: 'Facturas emitidas y trazabilidad.', section: 'historial', icon: Receipt },
+      { label: 'Reservas', description: 'Seguimiento y confirmación de mesas.', section: 'reservas', icon: CalendarDays },
+      { label: 'QR Mesas', description: 'Entrega de accesos para autoatención.', section: 'qr', icon: QrCode },
+      { label: 'Auditoría', description: 'Cambios sensibles y monitoreo interno.', section: 'auditoria', icon: Shield },
+      { label: 'Facturación', description: 'Configuración y operación electrónica.', section: 'fe', icon: FileText },
+      { label: 'Respaldo', description: 'Descarga inmediata de la base actual.', href: '/api/backup', icon: Download }
+    ];
+    const dashboardStats = [
+      {
+        eyebrow: 'Sala',
+        label: 'Mesas activas',
+        value: `${mesasOcupadas}/${totalMesas || 0}`,
+        meta: `${ocupacion}% de ocupación actual`,
+        icon: Activity,
+        color: 'var(--accent)',
+        progress: ocupacion
+      },
+      {
+        eyebrow: 'Capacidad',
+        label: 'Mesas disponibles',
+        value: String(mesasLibres),
+        meta: mesasLibres > 0 ? 'capacidad inmediata para servicio' : 'sin disponibilidad libre',
+        icon: LayoutDashboard,
+        color: 'var(--green)',
+        progress: totalMesas ? Math.round((mesasLibres / totalMesas) * 100) : 0
+      },
+      {
+        eyebrow: 'Agenda',
+        label: 'Reservas pendientes',
+        value: String(mesasReservadas),
+        meta: mesasReservadas > 0 ? 'requieren seguimiento operativo' : 'sin reservas por gestionar',
+        icon: CalendarDays,
+        color: 'var(--amber)',
+        progress: reservasPct
+      },
+      {
+        eyebrow: 'Tesorería',
+        label: 'Estado de caja',
+        value: cajaAbierta ? 'Activa' : 'Cerrada',
+        meta: cajaAbierta ? 'lista para facturar y cerrar ventas' : 'requiere apertura antes de operar',
+        icon: Wallet,
+        color: cajaAbierta ? 'var(--green)' : 'var(--red)',
+        progress: cajaAbierta ? 100 : 18
+      }
+    ];
+    const operationalFlags = [
+      {
+        label: 'Notificaciones push',
+        value: push.supported ? (push.subscribed ? 'Activas' : 'Desactivadas') : 'No disponibles',
+        tone: push.supported && push.subscribed ? 'var(--green)' : 'var(--text-2)'
+      },
+      {
+        label: 'Combos cargados',
+        value: `${combos.length}`,
+        tone: 'var(--accent)'
+      },
+      {
+        label: 'Modo visual',
+        value: theme === 'dark' ? 'Nocturno' : 'Claro',
+        tone: 'var(--text)'
+      }
+    ];
+    const roomBreakdown = [
+      { label: 'Ocupadas', count: mesasOcupadas, color: 'var(--accent)' },
+      { label: 'Libres', count: mesasLibres, color: 'var(--green)' },
+      { label: 'Reservadas', count: mesasReservadas, color: 'var(--amber)' }
     ];
 
     return (
@@ -219,72 +291,164 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
           {/* Content */}
           <div style={{ flex: 1, overflow: 'auto', padding: 24 }} className="anim-fade-up" key={section}>
             {section === 'dashboard' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                {/* Stats row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14 }}>
-                  {stats.map((s, i) => (
-                    <div key={i} className="card" style={{ padding: '20px 22px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                      <div>
-                        <p style={{ fontSize: 12, color: 'var(--text-3)', fontWeight: 500, marginBottom: 6 }}>{s.label}</p>
-                        <p style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1 }}>{s.value}</p>
-                        <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 5 }}>{s.change}</p>
-                      </div>
-                      <div style={{ width: 36, height: 36, borderRadius: 'var(--r-md)', background: s.color + '18', border: `1px solid ${s.color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <s.icon size={17} color={s.color} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Shortcuts */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
-                  {[
-                    { label: 'Historial', section: 'historial', emoji: '🧾' },
-                    { label: 'Reservas', section: 'reservas', emoji: '📅' },
-                    { label: 'QR Mesas', section: 'qr', emoji: '📱' },
-                    { label: 'Auditoría', section: 'auditoria', emoji: '🔍' },
-                    { label: 'Turnos', section: 'turnos', emoji: '⏰' },
-                    { label: 'P&L', section: 'pl', emoji: '📊' },
-                    { label: 'Delivery', section: 'delivery', emoji: '🛵' },
-                    { label: 'Backup DB', section: '', emoji: '💾', href: '/api/backup' },
-                  ].map(s => (
-                    s.href ? (
-                      <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" download
-                        className="card" style={{ padding: '14px 16px', textDecoration: 'none', color: 'inherit', display: 'block', transition: 'transform 150ms' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'}>
-                        <span style={{ fontSize: 20, display: 'block', marginBottom: 6 }}>{s.emoji}</span>
-                        <span style={{ fontSize: 13, fontWeight: 600 }}>{s.label}</span>
-                      </a>
-                    ) : (
-                      <button key={s.section} onClick={() => setSection(s.section)}
-                        className="card" style={{ padding: '14px 16px', border: 'none', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', transition: 'transform 150ms' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.transform = 'translateY(0)'}>
-                        <span style={{ fontSize: 20, display: 'block', marginBottom: 6 }}>{s.emoji}</span>
-                        <span style={{ fontSize: 13, fontWeight: 600 }}>{s.label}</span>
-                      </button>
-                    )
-                  ))}
-                </div>
-
-                {/* Table map */}
-                <div className="card" style={{ overflow: 'hidden' }}>
-                  <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <Activity size={15} color="var(--text-3)" />
-                      <span style={{ fontWeight: 600, fontSize: 13.5 }}>Mapa de Mesas</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-                      {[['var(--green)', 'Libre'], ['var(--red)', 'Ocupada'], ['var(--amber)', 'Reservada']].map(([c, l]) => (
-                        <span key={l} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: 'var(--text-3)' }}>
-                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: c, display: 'inline-block' }}></span> {l}
-                        </span>
-                      ))}
+              <div className="dashboard-shell">
+                <section className="dashboard-hero card">
+                  <div className="dashboard-hero-copy">
+                    <span className="dashboard-eyebrow">Centro de operaciones</span>
+                    <h2 className="dashboard-headline">Dashboard ejecutivo para servicio, caja y control del salón.</h2>
+                    <p className="dashboard-subline">
+                      Esta vista resume capacidad operativa real, estado del servicio y accesos críticos sin ruido visual ni métricas de relleno.
+                    </p>
+                    <div className="dashboard-chip-row">
+                      <span className="dashboard-chip">{currentTime}</span>
+                      <span className={`dashboard-chip ${cajaAbierta ? 'dashboard-chip-success' : 'dashboard-chip-danger'}`}>
+                        {cajaAbierta ? 'Caja operativa' : 'Caja pendiente'}
+                      </span>
+                      <span className="dashboard-chip">
+                        {push.supported ? (push.subscribed ? 'Push activado' : 'Push disponible') : 'Push no disponible'}
+                      </span>
                     </div>
                   </div>
-                  <div style={{ padding: 16 }}>
-                    <TableMap initialMesas={mesas} mesas={mesasData} onMesaClick={handleMesaClick} />
+                  <div className="dashboard-hero-side">
+                    <div className="dashboard-side-metric">
+                      <span className="dashboard-side-label">Capacidad disponible</span>
+                      <strong>{mesasLibres}</strong>
+                      <small>{mesasLibres > 0 ? 'mesas listas para recibir clientes' : 'sin mesas libres ahora'}</small>
+                    </div>
+                    <div className="dashboard-side-metric">
+                      <span className="dashboard-side-label">Cobertura del salón</span>
+                      <strong>{ocupacion}%</strong>
+                      <small>{mesasOcupadas} ocupadas de {totalMesas || 0} mesas registradas</small>
+                    </div>
+                  </div>
+                </section>
+
+                <div className="dashboard-kpi-grid">
+                  {dashboardStats.map((item) => (
+                    <article key={item.label} className="dashboard-kpi-card card">
+                      <div className="dashboard-kpi-topline">
+                        <span>{item.eyebrow}</span>
+                        <div className="dashboard-kpi-icon" style={{ color: item.color, background: `${item.color}18`, borderColor: `${item.color}32` }}>
+                          <item.icon size={16} />
+                        </div>
+                      </div>
+                      <p className="dashboard-kpi-label">{item.label}</p>
+                      <strong className="dashboard-kpi-value">{item.value}</strong>
+                      <p className="dashboard-kpi-meta">{item.meta}</p>
+                      <div className="dashboard-progress-track">
+                        <span style={{ width: `${Math.max(item.progress, 6)}%`, background: item.color }} />
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="dashboard-grid">
+                  <section className="dashboard-panel card dashboard-panel-main">
+                    <div className="dashboard-panel-header">
+                      <div>
+                        <p className="dashboard-panel-eyebrow">Visión del salón</p>
+                        <h3>Mapa operativo de mesas</h3>
+                      </div>
+                      <div className="dashboard-legend">
+                        {roomBreakdown.map((item) => (
+                          <span key={item.label}>
+                            <i style={{ background: item.color }} />
+                            {item.label}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="dashboard-room-grid">
+                      <div className="dashboard-room-summary">
+                        {roomBreakdown.map((item) => {
+                          const percentage = totalMesas ? Math.round((item.count / totalMesas) * 100) : 0;
+                          return (
+                            <div key={item.label} className="dashboard-status-row">
+                              <div className="dashboard-status-copy">
+                                <span>{item.label}</span>
+                                <strong>{item.count}</strong>
+                              </div>
+                              <div className="dashboard-status-bar">
+                                <span style={{ width: `${Math.max(percentage, item.count > 0 ? 10 : 0)}%`, background: item.color }} />
+                              </div>
+                              <small>{percentage}%</small>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="dashboard-table-card">
+                        <TableMap initialMesas={mesas} mesas={mesasData} onMesaClick={handleMesaClick} />
+                      </div>
+                    </div>
+                  </section>
+
+                  <div className="dashboard-side-stack">
+                    <section className="dashboard-panel card">
+                      <div className="dashboard-panel-header">
+                        <div>
+                          <p className="dashboard-panel-eyebrow">Estado operativo</p>
+                          <h3>Señales del turno</h3>
+                        </div>
+                      </div>
+
+                      <div className="dashboard-ops-list">
+                        {operationalFlags.map((flag) => (
+                          <div key={flag.label} className="dashboard-ops-item">
+                            <span>{flag.label}</span>
+                            <strong style={{ color: flag.tone }}>{flag.value}</strong>
+                          </div>
+                        ))}
+                        <div className="dashboard-ops-item">
+                          <span>Acceso a cocina</span>
+                          <a href="/cocina" target="_blank" rel="noopener noreferrer" className="dashboard-inline-link">
+                            Abrir módulo <ArrowUpRight size={14} />
+                          </a>
+                        </div>
+                      </div>
+                    </section>
+
+                    <section className="dashboard-panel card">
+                      <div className="dashboard-panel-header">
+                        <div>
+                          <p className="dashboard-panel-eyebrow">Accesos rápidos</p>
+                          <h3>Operaciones críticas</h3>
+                        </div>
+                      </div>
+
+                      <div className="dashboard-actions-grid">
+                        {actions.map((item) => item.href ? (
+                          <a
+                            key={item.label}
+                            href={item.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="dashboard-action-card"
+                          >
+                            <div className="dashboard-action-icon"><item.icon size={16} /></div>
+                            <div>
+                              <strong>{item.label}</strong>
+                              <p>{item.description}</p>
+                            </div>
+                          </a>
+                        ) : (
+                          <button
+                            key={item.label}
+                            type="button"
+                            onClick={() => setSection(item.section || 'dashboard')}
+                            className="dashboard-action-card"
+                          >
+                            <div className="dashboard-action-icon"><item.icon size={16} /></div>
+                            <div>
+                              <strong>{item.label}</strong>
+                              <p>{item.description}</p>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </section>
                   </div>
                 </div>
               </div>
@@ -344,8 +508,8 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
       {/* Navbar */}
       <header style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, background: 'var(--accent)', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <ChefHat size={16} color="white" />
+          <div className="brand-mark brand-mark-sm">
+            <img src="/logo.png" alt="RestoPOS" className="brand-mark-image" />
           </div>
           <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>RestoPOS</span>
           <span style={{ fontSize: 11, color: 'var(--text-3)', background: 'var(--surface-2)', padding: '3px 10px', borderRadius: 999, border: '1px solid var(--border)' }}>Mesero</span>

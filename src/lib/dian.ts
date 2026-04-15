@@ -1,6 +1,6 @@
 'use server';
 
-import db from '@/lib/db';
+import { createFacturaAndClosePedidoData, getPedidoFacturaData } from '@/lib/opsData';
 
 // This is a template integration for a "Proveedor Tecnológico" DIAN API.
 // E.g. Siigo, Alegra, Loggro, etc.
@@ -32,21 +32,12 @@ interface PayloadFactura {
 export async function emitirFacturaElectronica(pedidoId: number, datosCliente: PayloadFactura['cliente'], metodoPago: string) {
     try {
         // 1. Gather all info from the DB
-        const pedido = db.prepare(`
-      SELECT p.*, m.numero as mesa_numero
-      FROM pedidos p 
-      JOIN mesas m ON p.mesa_id = m.id 
-      WHERE p.id = ?
-    `).get(pedidoId) as any;
+        const supabaseData = await getPedidoFacturaData(pedidoId);
+        const pedido = supabaseData?.pedido;
 
         if (!pedido) throw new Error('Pedido no encontrado');
 
-        const detalles = db.prepare(`
-      SELECT dp.*, pr.nombre 
-      FROM detalles_pedido dp
-      JOIN productos pr ON dp.producto_id = pr.id
-      WHERE dp.pedido_id = ?
-    `).all(pedidoId) as any[];
+        const detalles = supabaseData?.detalles || [];
 
         // 2. Build the exact JSON structure your provider expects
         const payload: PayloadFactura = {
@@ -96,18 +87,7 @@ export async function emitirFacturaElectronica(pedidoId: number, datosCliente: P
         const numero_dian = 'FACT-' + Math.floor(Math.random() * 10000);
 
         // 4. Save the reference in our database
-        db.prepare(`
-      INSERT INTO facturas (pedido_id, numero_dian, total, metodo_pago, estado_dian) 
-      VALUES (?, ?, ?, ?, ?)
-    `).run(pedidoId, numero_dian, total, metodoPago, 'enviado');
-
-        // 5. Update order state
-        db.prepare('UPDATE pedidos SET estado = ? WHERE id = ?').run('pagado', pedidoId);
-
-        // 6. Free the table
-        if (pedido.mesa_id) {
-            db.prepare('UPDATE mesas SET estado = ? WHERE id = ?').run('disponible', pedido.mesa_id);
-        }
+        await createFacturaAndClosePedidoData(pedidoId, total, metodoPago, numero_dian, cufe);
 
         return { success: true, cufe, numero_dian };
 

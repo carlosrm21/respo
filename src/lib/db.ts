@@ -34,13 +34,20 @@ const executeSql = (database: Database.Database, input: ExecuteInput): ExecuteRe
 
 // Initialize the database connection
 const initDb = () => {
-    // Ensure the data directory exists
-    const dataDir = path.join(process.cwd(), 'data');
+  const isVercelRuntime = process.env.VERCEL === '1' || process.env.VERCEL === 'true';
+  const configuredDbPath = process.env.SQLITE_DB_PATH?.trim();
+  const dataDir = configuredDbPath
+    ? path.dirname(configuredDbPath)
+    : isVercelRuntime
+    ? path.join('/tmp', 'restopos-data')
+    : path.join(process.cwd(), 'data');
+
+  // Ensure the data directory exists
     if (!fs.existsSync(dataDir)) {
         fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    const dbPath = path.join(dataDir, 'restaurante.db');
+  const dbPath = configuredDbPath || path.join(dataDir, 'restaurante.db');
     const db = new Database(dbPath);
 
     // Enable foreign keys
@@ -137,6 +144,23 @@ const initDb = () => {
         proveedor TEXT,
         fecha_actualizacion DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+    `);
+
+    const meserosColumns = db.prepare(`PRAGMA table_info(meseros)`).all() as Array<{ name: string }>;
+    const hasRolColumn = meserosColumns.some((column) => column.name === 'rol');
+    if (!hasRolColumn) {
+        db.exec(`ALTER TABLE meseros ADD COLUMN rol TEXT DEFAULT 'waiter'`);
+    }
+
+    db.exec(`
+      UPDATE meseros
+      SET rol = CASE
+        WHEN lower(COALESCE(nombre, '')) LIKE '%admin%' THEN 'admin'
+        WHEN lower(COALESCE(nombre, '')) LIKE '%cocina%' THEN 'kitchen'
+        WHEN lower(COALESCE(nombre, '')) LIKE '%kitchen%' THEN 'kitchen'
+        ELSE 'waiter'
+      END
+      WHERE rol IS NULL OR trim(rol) = ''
     `);
 
     // Initialize with some default data if empty

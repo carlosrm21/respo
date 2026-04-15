@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
-import db from '@/lib/db';
+import { activatePaidLicense } from '@/lib/license';
+import { upsertRestaurantSettings } from '@/lib/opsData';
+import { isSupabaseConfigured } from '@/lib/supabaseAdmin';
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN || '',
@@ -8,6 +10,10 @@ const client = new MercadoPagoConfig({
 
 export async function POST(request: Request) {
   try {
+    if (!isSupabaseConfigured) {
+      return NextResponse.json({ success: false, error: 'Supabase no configurado.' }, { status: 500 });
+    }
+
     // MercadoPago puede enviar el ID por query params o por el body en formato JSON
     const url = new URL(request.url);
     
@@ -38,41 +44,16 @@ export async function POST(request: Request) {
           const metadata = paymentData.metadata;
           
           if (metadata) {
-            await db.execute(`
-              CREATE TABLE IF NOT EXISTS configuracion_restaurante (
-                clave TEXT PRIMARY KEY,
-                valor TEXT
-              )
-            `);
-            
-            const queries = [];
-            if (metadata.restaurant_name) queries.push({ sql: `INSERT OR REPLACE INTO configuracion_restaurante (clave, valor) VALUES ('restaurant_name', ?)`, args: [String(metadata.restaurant_name)] });
-            if (metadata.nit) queries.push({ sql: `INSERT OR REPLACE INTO configuracion_restaurante (clave, valor) VALUES ('nit', ?)`, args: [String(metadata.nit)] });
-            if (metadata.contact_email) queries.push({ sql: `INSERT OR REPLACE INTO configuracion_restaurante (clave, valor) VALUES ('contact_email', ?)`, args: [String(metadata.contact_email)] });
-            if (metadata.contact_phone) queries.push({ sql: `INSERT OR REPLACE INTO configuracion_restaurante (clave, valor) VALUES ('contact_phone', ?)`, args: [String(metadata.contact_phone)] });
-
-            for (const q of queries) {
-              await db.execute(q);
-            }
+            await upsertRestaurantSettings({
+              restaurant_name: metadata.restaurant_name ? String(metadata.restaurant_name) : '',
+              nit: metadata.nit ? String(metadata.nit) : '',
+              contact_email: metadata.contact_email ? String(metadata.contact_email) : '',
+              contact_phone: metadata.contact_phone ? String(metadata.contact_phone) : ''
+            });
             console.log('Información del restaurante almacenada desde MercadoPago.');
           }
 
-          // Crear tabla de licencia si no existe
-          await db.execute(`
-            CREATE TABLE IF NOT EXISTS sistema_licencia (
-              id INTEGER PRIMARY KEY,
-              estado TEXT,
-              expiracion TEXT,
-              payment_id TEXT,
-              fecha_activacion DATETIME DEFAULT CURRENT_TIMESTAMP
-            )
-          `);
-          
-          // Registrar la licencia verificada y activada por 1 año
-          await db.execute({
-            sql: `INSERT INTO sistema_licencia (estado, expiracion, payment_id) VALUES (?, date('now', '+1 year'), ?)`,
-            args: ['activa', String(id)]
-          });
+          await activatePaidLicense(String(id));
 
           console.log('Licencia almacenada en la base de datos automáticamente por el Webhook.');
         } catch (dbError) {

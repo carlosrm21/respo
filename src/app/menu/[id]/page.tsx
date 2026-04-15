@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
-import db from '@/lib/db';
 import type { Metadata } from 'next';
+import { getPublicMenuData } from '@/lib/opsData';
 
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
@@ -13,17 +13,18 @@ export const metadata: Metadata = {
 export default async function MenuPublicoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const mesaId = parseInt(id);
-  const mesa = db.prepare('SELECT * FROM mesas WHERE id = ?').get(mesaId) as any;
-  if (!mesa) notFound();
+  let mesa: any;
+  let categorias: any[] = [];
+  let productos: any[] = [];
 
-  const categorias = db.prepare('SELECT * FROM categorias ORDER BY nombre').all() as any[];
-  const productos = db.prepare(`
-    SELECT p.*, c.nombre as cat_nombre
-    FROM productos p
-    JOIN categorias c ON p.categoria_id = c.id
-    WHERE p.disponible = 1
-    ORDER BY c.nombre, p.nombre
-  `).all() as any[];
+  const data = await getPublicMenuData(mesaId);
+  if (!data) notFound();
+  mesa = data.mesa;
+  categorias = data.categorias;
+  productos = data.productos.map((product) => ({
+    ...product,
+    cat_nombre: product.categoria_nombre
+  }));
 
   const grupos: Record<string, any[]> = {};
   productos.forEach(p => { (grupos[p.cat_nombre] = grupos[p.cat_nombre] || []).push(p); });

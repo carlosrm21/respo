@@ -1,5 +1,5 @@
 'use client';
-import { BarChart3, Wallet, Users, LayoutDashboard, UtensilsCrossed, Package, LogOut, ChefHat, Receipt, CalendarDays, QrCode, Shield, UserCheck, DollarSign, Truck, FileText, Printer } from 'lucide-react';
+import { BarChart3, Wallet, Users, LayoutDashboard, UtensilsCrossed, Package, LogOut, Receipt, CalendarDays, QrCode, Shield, UserCheck, DollarSign, Truck, FileText, Printer } from 'lucide-react';
 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -36,8 +36,8 @@ export default function AdminSidebar({ activeSection, onSectionChange, onLogout 
     <aside style={{ width: 224, background: 'var(--surface)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', height: '100vh', flexShrink: 0 }}>
       {/* Logo */}
       <div style={{ padding: '20px 16px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <div style={{ width: 30, height: 30, background: 'var(--accent)', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <ChefHat size={16} color="white" />
+        <div className="brand-mark brand-mark-sm" style={{ flexShrink: 0 }}>
+          <img src="/logo.png" alt="RestoPOS" className="brand-mark-image" />
         </div>
         <div>
           <div style={{ fontWeight: 700, fontSize: 14, letterSpacing: '-0.02em', lineHeight: 1.2 }}>RestoPOS</div>

@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { ChefHat, ArrowRight, LayoutGrid, Users, UtensilsCrossed, Sparkles, CheckCircle2, ShieldCheck, Zap, Smartphone, Receipt, Package, Star, MessageCircle, ChevronDown, Quote, Loader2, X, Menu } from 'lucide-react';
+import { ChefHat, ArrowRight, LayoutGrid, Users, UtensilsCrossed, Sparkles, CheckCircle2, ShieldCheck, Zap, Smartphone, Receipt, Package, Star, MessageCircle, ChevronDown, Quote, Loader2, X, Menu, Download, Cloud } from 'lucide-react';
 import Link from 'next/link';
 import { appendTrackingToUrl, captureCampaignTracking, trackCampaignEvent } from '@/lib/campaignTracking';
 
@@ -11,6 +11,8 @@ export default function LandingUI() {
   const [navOpen, setNavOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [formData, setFormData] = useState({ restaurantName: '', nit: '', email: '', phone: '' });
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
     captureCampaignTracking();
@@ -29,6 +31,29 @@ export default function LandingUI() {
     if (resolvedStatus === 'failure' || resolvedStatus === 'pending') {
       trackCampaignEvent('purchase_failure', { from: 'landing_return', status: resolvedStatus });
     }
+
+    // Handle PWA install prompt
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallPrompt(true);
+      trackCampaignEvent('pwa_install_prompt_available');
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    const handleAppInstalled = () => {
+      trackCampaignEvent('pwa_app_installed');
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    };
+
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
   }, []);
 
   const handlePaymentSubmit = (e: React.FormEvent) => {
@@ -42,6 +67,21 @@ export default function LandingUI() {
       has_phone: Boolean(formData.phone)
     });
     window.location.href = appendTrackingToUrl(PAYMENT_URL);
+  };
+
+  const handleInstallApp = async () => {
+    if (deferredPrompt) {
+      trackCampaignEvent('pwa_install_initiated');
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        trackCampaignEvent('pwa_install_accepted');
+      } else {
+        trackCampaignEvent('pwa_install_dismissed');
+      }
+      setDeferredPrompt(null);
+      setShowInstallPrompt(false);
+    }
   };
 
   const features = [
@@ -129,9 +169,9 @@ export default function LandingUI() {
   return (
     <main style={{
       minHeight: '100vh',
-      backgroundColor: '#09090b',
-      backgroundImage: 'radial-gradient(ellipse at top, rgba(139, 92, 246, 0.12), transparent 60%), radial-gradient(ellipse at bottom left, rgba(59, 130, 246, 0.08), transparent 60%)',
-      fontFamily: '"Inter", system-ui, sans-serif',
+      backgroundColor: '#08111f',
+      backgroundImage: 'radial-gradient(ellipse at top, rgba(37, 99, 235, 0.18), transparent 60%), radial-gradient(ellipse at bottom left, rgba(249, 115, 22, 0.12), transparent 58%), radial-gradient(ellipse at right, rgba(124, 58, 237, 0.08), transparent 54%)',
+      fontFamily: 'var(--font-sans), system-ui, sans-serif',
       color: '#f8fafc',
       overflowX: 'hidden'
     }}>
@@ -148,7 +188,7 @@ export default function LandingUI() {
         ::-webkit-scrollbar-thumb:hover { background: #3f3f36; }
 
         .hero-title {
-          background: linear-gradient(180deg, #ffffff 0%, #a1a1aa 100%);
+          background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 52%, #93c5fd 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -167,7 +207,7 @@ export default function LandingUI() {
         .btn-cta:hover {
           filter: brightness(1.12);
           transform: scale(1.02);
-          box-shadow: 0 0 28px rgba(139, 92, 246, 0.5);
+          box-shadow: 0 0 28px rgba(37, 99, 235, 0.34), 0 0 18px rgba(249, 115, 22, 0.16);
         }
         .nav-link {
           transition: color 0.2s;
@@ -191,7 +231,7 @@ export default function LandingUI() {
           position: sticky;
           top: 0;
           z-index: 100;
-          background: rgba(9,9,11,0.85);
+          background: rgba(8,17,31,0.82);
         }
         .nav-desktop-links { display: flex; align-items: center; gap: 24px; }
         .nav-hamburger { display: none; background: transparent; border: none; color: #f8fafc; cursor: pointer; padding: 6px; }
@@ -226,6 +266,7 @@ export default function LandingUI() {
           line-height: 1.1;
           max-width: 900px;
           margin: 0 auto 24px;
+          font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
         }
         .hero-subtitle {
           color: #94a3b8;
@@ -273,80 +314,267 @@ export default function LandingUI() {
 
         /* Preview section */
         .preview-section {
-          padding: clamp(48px,8vw,80px) 20px;
+          padding: clamp(48px,8vw,84px) 20px;
           border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .preview-tabs {
-          display: flex;
-          gap: 8px;
-          flex-wrap: wrap;
-          justify-content: center;
-          margin-bottom: 32px;
-        }
-        .preview-tab {
-          padding: 9px 18px;
-          border-radius: 99px;
-          font-size: 13.5px;
-          font-weight: 500;
-          cursor: pointer;
-          border: 1px solid rgba(255,255,255,0.1);
-          background: rgba(24,24,27,0.6);
-          color: #a1a1aa;
-          transition: all 0.2s;
-          font-family: inherit;
-        }
-        .preview-tab:hover { color: #f8fafc; border-color: rgba(255,255,255,0.2); }
-        .preview-tab.active {
-          background: rgba(139,92,246,0.15);
-          border-color: rgba(139,92,246,0.4);
-          color: #c084fc;
-          font-weight: 600;
-        }
-        .preview-browser {
-          max-width: 1000px;
-          margin: 0 auto;
-          border-radius: 16px;
+          position: relative;
           overflow: hidden;
-          border: 1px solid rgba(255,255,255,0.1);
-          box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(139,92,246,0.15);
+          background:
+            radial-gradient(520px 220px at 10% 5%, rgba(249, 115, 22, 0.28), transparent 70%),
+            radial-gradient(560px 260px at 92% 90%, rgba(59, 130, 246, 0.22), transparent 72%),
+            linear-gradient(135deg, rgba(24,24,27,0.92), rgba(39,39,42,0.9));
         }
-        .preview-browser-bar {
-          background: #1c1c1f;
-          padding: 10px 16px;
+        .preview-section::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+          background-size: 22px 22px;
+          mask-image: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.1));
+          pointer-events: none;
+        }
+        .preview-section-content {
+          position: relative;
+          max-width: 1140px;
+          margin: 0 auto;
+          z-index: 2;
+        }
+        .preview-headline-wrap {
+          text-align: center;
+          margin-bottom: 34px;
+        }
+        .preview-showcase-shell {
+          background: linear-gradient(120deg, rgba(249,115,22,0.9), rgba(234,88,12,0.88) 28%, rgba(139,92,246,0.88) 62%, rgba(59,130,246,0.92));
+          border: 1px solid rgba(255,255,255,0.22);
+          border-radius: 26px;
+          padding: clamp(18px, 2.6vw, 32px);
+          box-shadow: 0 38px 90px rgba(2, 6, 23, 0.5), inset 0 1px 0 rgba(255,255,255,0.22);
+        }
+        .preview-showcase-grid {
+          display: grid;
+          grid-template-columns: minmax(260px, 0.95fr) minmax(0, 1.35fr);
+          gap: clamp(16px, 2.8vw, 30px);
+          align-items: center;
+        }
+        .preview-copy-title {
+          font-size: clamp(30px, 4.2vw, 54px);
+          line-height: 1.05;
+          font-weight: 800;
+          letter-spacing: -0.04em;
+          color: #fff;
+          margin: 0 0 14px;
+          font-family: var(--font-display), var(--font-sans), system-ui, sans-serif;
+        }
+        .preview-copy-subtitle {
+          margin: 0 0 20px;
+          color: rgba(255,255,255,0.9);
+          font-size: clamp(13px, 1.5vw, 15px);
+          line-height: 1.65;
+          max-width: 360px;
+        }
+        .preview-benefits {
           display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 18px;
+        }
+        .preview-benefit-pill {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #fff;
+          padding: 7px 12px;
+          background: rgba(15, 23, 42, 0.33);
+          border: 1px solid rgba(255,255,255,0.28);
+          border-radius: 999px;
+        }
+        .preview-benefit-pill svg { color: #86efac; }
+        .preview-metrics {
+          display: inline-flex;
           align-items: center;
           gap: 12px;
-          border-bottom: 1px solid rgba(255,255,255,0.07);
+          background: rgba(2, 6, 23, 0.48);
+          border: 1px solid rgba(255,255,255,0.22);
+          border-radius: 999px;
+          padding: 10px 16px;
         }
-        .preview-browser-dots { display: flex; gap: 6px; }
+        .preview-metric-logo {
+          width: 34px;
+          height: 34px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.12);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+        .preview-metric-logo img { width: 22px; height: 22px; object-fit: contain; }
+        .preview-metric-value {
+          color: #fff;
+          font-weight: 800;
+          font-size: 28px;
+          line-height: 1;
+          letter-spacing: -0.02em;
+        }
+        .preview-metric-label {
+          color: rgba(255,255,255,0.88);
+          font-size: 12px;
+          line-height: 1.2;
+        }
+        .preview-devices {
+          position: relative;
+          min-height: clamp(260px, 32vw, 400px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .preview-laptop {
+          width: min(100%, 740px);
+          border-radius: 16px;
+          overflow: hidden;
+          border: 1px solid rgba(255,255,255,0.35);
+          box-shadow: 0 24px 54px rgba(0, 0, 0, 0.38);
+          background: rgba(9, 9, 11, 0.9);
+          animation: previewFloatUp 6s ease-in-out infinite;
+        }
+        .preview-browser-bar {
+          background: rgba(17,24,39,0.9);
+          padding: 10px 12px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .preview-browser-dots { display: flex; gap: 5px; }
         .preview-browser-url {
           flex: 1;
-          background: rgba(255,255,255,0.05);
+          background: rgba(255,255,255,0.08);
           border-radius: 6px;
-          padding: 5px 12px;
-          font-size: 12px;
-          color: #64748b;
+          padding: 6px 10px;
+          font-size: 11px;
+          color: #cbd5e1;
           display: flex;
           align-items: center;
           gap: 6px;
         }
-        .preview-browser img {
+        .preview-laptop img {
           width: 100%;
           display: block;
           aspect-ratio: 16/9;
           object-fit: cover;
           object-position: top;
         }
-        .preview-img-enter {
-          animation: previewFade 0.35s ease both;
+        .preview-phone {
+          position: absolute;
+          left: clamp(-4px, 2vw, 20px);
+          bottom: clamp(-28px, -2vw, -8px);
+          width: min(34%, 200px);
+          border-radius: 28px;
+          background: #020617;
+          border: 7px solid #0f172a;
+          box-shadow: 0 22px 50px rgba(0, 0, 0, 0.52);
+          transform: rotate(-12deg);
+          overflow: hidden;
+          animation: previewFloatDown 6s ease-in-out infinite;
+          animation-delay: 0.7s;
         }
+        .preview-phone-notch {
+          position: absolute;
+          top: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 42%;
+          height: 16px;
+          border-radius: 0 0 12px 12px;
+          background: #020617;
+          z-index: 4;
+        }
+        .preview-phone img {
+          width: 100%;
+          display: block;
+          aspect-ratio: 9 / 18;
+          object-fit: cover;
+          object-position: top;
+        }
+        .preview-tabs {
+          display: flex;
+          gap: 10px;
+          flex-wrap: wrap;
+          justify-content: center;
+          margin-top: 28px;
+        }
+        .preview-tab {
+          padding: 9px 17px;
+          border-radius: 999px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          border: 1px solid rgba(255,255,255,0.24);
+          background: rgba(15,23,42,0.36);
+          color: rgba(255,255,255,0.86);
+          transition: all 0.2s;
+          font-family: inherit;
+        }
+        .preview-tab:hover {
+          color: #fff;
+          transform: translateY(-1px);
+          border-color: rgba(255,255,255,0.36);
+        }
+        .preview-tab.active {
+          background: rgba(255,255,255,0.2);
+          color: #fff;
+          border-color: rgba(255,255,255,0.5);
+          box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
+        }
+        .preview-caption {
+          color: #e2e8f0;
+          font-size: clamp(13px, 2vw, 15px);
+          line-height: 1.55;
+          text-align: center;
+          max-width: 740px;
+          margin: 20px auto 0;
+          font-weight: 500;
+        }
+        .preview-img-enter { animation: previewFade 0.35s ease both; }
         @keyframes previewFade {
           from { opacity: 0; transform: translateY(8px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes previewFloatUp {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+        @keyframes previewFloatDown {
+          0%, 100% { transform: rotate(-12deg) translateY(0); }
+          50% { transform: rotate(-12deg) translateY(-6px); }
+        }
+        @media (max-width: 980px) {
+          .preview-showcase-grid {
+            grid-template-columns: 1fr;
+          }
+          .preview-copy-subtitle {
+            max-width: none;
+          }
+          .preview-devices {
+            margin-top: 4px;
+          }
+        }
         @media (max-width: 768px) {
-          .preview-tab { font-size: 12px; padding: 7px 14px; }
           .preview-browser-url { display: none; }
+          .preview-tab {
+            font-size: 12px;
+            padding: 8px 14px;
+          }
+          .preview-metrics {
+            width: 100%;
+            justify-content: center;
+          }
+          .preview-phone {
+            width: min(44%, 170px);
+            left: -2px;
+            bottom: -20px;
+          }
         }
 
         /* Pricing */
@@ -388,19 +616,153 @@ export default function LandingUI() {
         }
 
         /* Modal form input */
+        .pricing-modal-overlay {
+          position: fixed;
+          inset: 0;
+          background:
+            radial-gradient(360px 180px at 18% 18%, rgba(59,130,246,0.16), transparent 70%),
+            radial-gradient(360px 180px at 85% 85%, rgba(249,115,22,0.12), transparent 72%),
+            rgba(2, 6, 23, 0.82);
+          backdrop-filter: blur(12px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          padding: 20px;
+        }
+        .pricing-modal-card {
+          width: 100%;
+          max-width: 520px;
+          overflow: auto;
+          max-height: min(88vh, 760px);
+          border-radius: 28px;
+          border: 1px solid rgba(255,255,255,0.14);
+          background: linear-gradient(180deg, rgba(11,18,32,0.92), rgba(17,24,39,0.82));
+          backdrop-filter: blur(20px);
+          box-shadow: 0 38px 100px rgba(2, 6, 23, 0.56), inset 0 1px 0 rgba(255,255,255,0.08);
+          animation: fadeUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+          position: relative;
+        }
+        .pricing-modal-card::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(300px 140px at 14% 6%, rgba(255,255,255,0.08), transparent 72%);
+          pointer-events: none;
+        }
+        .pricing-modal-header {
+          padding: 24px 24px 20px;
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 14px;
+          position: relative;
+          z-index: 2;
+        }
+        .pricing-modal-brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 14px;
+        }
+        .pricing-modal-logo {
+          width: 54px;
+          height: 54px;
+          border-radius: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(145deg, rgba(255,255,255,0.16), rgba(255,255,255,0.05));
+          border: 1px solid rgba(255,255,255,0.16);
+          box-shadow: 0 18px 34px rgba(15, 23, 42, 0.28);
+        }
+        .pricing-modal-logo img {
+          width: 70%;
+          height: 70%;
+          object-fit: contain;
+        }
+        .pricing-modal-close {
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: #cbd5e1;
+          cursor: pointer;
+          padding: 8px;
+          border-radius: 14px;
+          flex-shrink: 0;
+          transition: all 0.18s ease;
+        }
+        .pricing-modal-close:hover {
+          background: rgba(255,255,255,0.08);
+          color: #fff;
+        }
+        .pricing-modal-form {
+          padding: 22px 24px 24px;
+          position: relative;
+          z-index: 2;
+        }
+        .pricing-modal-grid {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          margin-bottom: 26px;
+        }
+        .pricing-modal-field {
+          display: flex;
+          flex-direction: column;
+          gap: 7px;
+        }
+        .pricing-modal-label {
+          display: block;
+          color: #dbe4f0;
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0.04em;
+          text-transform: uppercase;
+        }
         .modal-input {
           width: 100%;
-          background: #27272a;
-          border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 8px;
-          padding: 12px 16px;
+          background: rgba(255,255,255,0.07);
+          border: 1px solid rgba(255,255,255,0.12);
+          border-radius: 16px;
+          padding: 14px 16px;
           color: #fff;
           font-size: 15px;
           font-family: inherit;
           outline: none;
-          transition: border-color 0.2s;
+          transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
         }
-        .modal-input:focus { border-color: #8b5cf6; }
+        .modal-input::placeholder {
+          color: rgba(226,232,240,0.42);
+        }
+        .modal-input:focus {
+          border-color: rgba(125, 211, 252, 0.52);
+          box-shadow: 0 0 0 4px rgba(59,130,246,0.14);
+          background: rgba(255,255,255,0.1);
+        }
+        .pricing-modal-submit {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          padding: 16px;
+          background: linear-gradient(135deg, #f97316, #8b5cf6 52%, #2563eb 100%);
+          color: #fff;
+          border-radius: 18px;
+          border: none;
+          cursor: pointer;
+          font-weight: 800;
+          font-size: 16px;
+          font-family: inherit;
+          box-shadow: 0 18px 34px rgba(37,99,235,0.24);
+        }
+        .pricing-modal-note {
+          margin-top: 14px;
+          text-align: center;
+          color: rgba(203,213,225,0.68);
+          font-size: 12px;
+          line-height: 1.5;
+        }
 
         /* ─── BREAKPOINTS ────────────────────────────────── */
         @media (max-width: 768px) {
@@ -416,6 +778,12 @@ export default function LandingUI() {
           .highlights-grid { grid-template-columns: 1fr; }
           .highlights-visual { display: none; }
 
+          .preview-showcase-shell { border-radius: 22px; }
+          .preview-copy-title { font-size: clamp(28px, 8vw, 42px); }
+          .preview-copy-subtitle { max-width: none; }
+          .preview-phone { width: min(46%, 160px); bottom: -16px; left: 0; }
+          .preview-devices { min-height: 250px; }
+
           .footer-wrapper { padding: 48px 24px 32px; }
           .footer-bottom { flex-direction: column; align-items: flex-start; gap: 8px; }
 
@@ -427,6 +795,14 @@ export default function LandingUI() {
           .hero-section { padding: 36px 16px 32px; }
           .highlights-grid { grid-template-columns: 1fr; gap: 12px; }
           .pricing-section { padding: 56px 16px; }
+          .hero-title-text { font-size: clamp(34px, 11vw, 46px); }
+          .hero-subtitle { margin-bottom: 32px; }
+          .preview-tabs { gap: 8px; }
+          .preview-tab { padding: 8px 12px; }
+          .pricing-modal-overlay { align-items: flex-start; padding: 14px; }
+          .pricing-modal-card { max-height: calc(100vh - 28px); border-radius: 24px; }
+          .pricing-modal-header,
+          .pricing-modal-form { padding-left: 16px; padding-right: 16px; }
         }
 
         @media (min-width: 480px) and (max-width: 768px) {
@@ -450,7 +826,7 @@ export default function LandingUI() {
             <a href="#features" className="nav-link">Características</a>
             <a href="#preview" className="nav-link">Vista Previa</a>
             <a href="#pricing" className="nav-link">Precios</a>
-            <a href="/pos" onClick={() => trackCampaignEvent('cta_click', { cta_id: 'nav_login' })} className="btn-cta" style={{ padding: '10px 22px', background: '#8b5cf6', color: '#fff', borderRadius: '99px', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
+            <a href="/pos" onClick={() => trackCampaignEvent('cta_click', { cta_id: 'nav_login' })} className="btn-cta" style={{ padding: '10px 22px', background: 'linear-gradient(135deg, #f97316, #7c3aed 52%, #2563eb)', color: '#fff', borderRadius: '99px', textDecoration: 'none', fontWeight: 600, fontSize: 14, boxShadow: '0 14px 28px rgba(37,99,235,0.18)' }}>
               Ir al Login →
             </a>
           </div>
@@ -471,7 +847,7 @@ export default function LandingUI() {
           <a href="#features" className="nav-mobile-link" onClick={() => setNavOpen(false)}>Características</a>
           <a href="#preview" className="nav-mobile-link" onClick={() => setNavOpen(false)}>Vista Previa</a>
           <a href="#pricing" className="nav-mobile-link" onClick={() => setNavOpen(false)}>Precios</a>
-          <a href="/pos" style={{ marginTop: 8, display: 'block', textAlign: 'center', padding: '14px 20px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 600, fontSize: 16 }} onClick={() => { setNavOpen(false); trackCampaignEvent('cta_click', { cta_id: 'mobile_login' }); }}>
+          <a href="/pos" style={{ marginTop: 8, display: 'block', textAlign: 'center', padding: '14px 20px', background: 'linear-gradient(135deg, #f97316, #7c3aed 52%, #2563eb)', color: '#fff', borderRadius: 12, textDecoration: 'none', fontWeight: 600, fontSize: 16 }} onClick={() => { setNavOpen(false); trackCampaignEvent('cta_click', { cta_id: 'mobile_login' }); }}>
             Iniciar Sesión →
           </a>
         </div>
@@ -479,7 +855,7 @@ export default function LandingUI() {
 
       {/* ── HERO ── */}
       <header aria-label="Introducción" className="hero-section">
-        <div style={{ position: 'absolute', top: '15%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(600px, 90vw)', height: 350, background: '#8b5cf6', filter: 'blur(140px)', opacity: 0.12, borderRadius: '50%', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: '15%', left: '50%', transform: 'translate(-50%, -50%)', width: 'min(680px, 92vw)', height: 360, background: 'radial-gradient(circle, rgba(37,99,235,0.3) 0%, rgba(249,115,22,0.14) 44%, rgba(124,58,237,0.12) 62%, transparent 78%)', filter: 'blur(120px)', opacity: 0.78, borderRadius: '50%', pointerEvents: 'none' }} />
 
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'rgba(139, 92, 246, 0.12)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '99px', marginBottom: 28 }}>
           <Sparkles size={15} color="#c084fc" />
@@ -495,7 +871,7 @@ export default function LandingUI() {
         </p>
 
         <div className="hero-cta-row">
-          <a href="/pos" aria-label="Ir a Iniciar Sesión en RestoPOS" onClick={() => trackCampaignEvent('cta_click', { cta_id: 'hero_login' })} className="btn-cta" style={{ padding: '15px 32px', background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)', color: '#fff', borderRadius: '16px', textDecoration: 'none', fontWeight: 700, fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+          <a href="/pos" aria-label="Ir a Iniciar Sesión en RestoPOS" onClick={() => trackCampaignEvent('cta_click', { cta_id: 'hero_login' })} className="btn-cta" style={{ padding: '15px 32px', background: 'linear-gradient(135deg, #f97316, #7c3aed 52%, #2563eb)', color: '#fff', borderRadius: '16px', textDecoration: 'none', fontWeight: 700, fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 10, boxShadow: '0 18px 34px rgba(37,99,235,0.2)' }}>
             Iniciar Sistema <ArrowRight size={18} />
           </a>
           <a href="https://www.movilcomts.com" aria-label="Visitar página corporativa del desarrollador" target="_blank" rel="noopener noreferrer" style={{ padding: '15px 32px', background: 'rgba(255,255,255,0.05)', color: '#f8fafc', borderRadius: '16px', textDecoration: 'none', fontWeight: 600, fontSize: 16, border: '1px solid rgba(255,255,255,0.12)' }}>
@@ -527,17 +903,17 @@ export default function LandingUI() {
       {/* ── APP PREVIEW ── */}
       {(() => {
         const tabs = [
-          { label: '📊 Dashboard', img: '/preview-dashboard.png', desc: 'Panel de control con estadísticas en tiempo real, mapa de mesas y accesos directos a cada módulo.' },
-          { label: '🧑‍💼 Mesero', img: '/preview-waiter.png', desc: 'App de toma de pedidos para meseros: selección de mesa, productos, cantidades y envío directo a cocina.' },
-          { label: '👨‍🍳 Cocina KDS', img: '/preview-kds.png', desc: 'Pantalla de cocina con comandas en tiempo real, tiempos de preparación y estados por pedido.' },
-          { label: '📈 Analíticas', img: '/preview-analytics.png', desc: 'Reportes de ventas, platillos top, hora pico y gráficos de tendencia para tomar mejores decisiones.' },
-          { label: '📦 Inventario', img: '/preview-inventory.png', desc: 'Control de stock con alertas de merma, niveles mínimos y registro de ingredientes por unidad.' },
+          { label: 'Dashboard', img: '/preview-dashboard.png', desc: 'Panel de control con estadísticas en tiempo real, mapa de mesas y accesos directos a cada módulo.' },
+          { label: 'Meseros', img: '/preview-waiter.png', desc: 'App de toma de pedidos para meseros: selección de mesa, productos, cantidades y envío directo a cocina.' },
+          { label: 'Cocina KDS', img: '/preview-kds.png', desc: 'Pantalla de cocina con comandas en tiempo real, tiempos de preparación y estados por pedido.' },
+          { label: 'Analíticas', img: '/preview-analytics.png', desc: 'Reportes de ventas, platillos top, hora pico y gráficos de tendencia para tomar mejores decisiones.' },
+          { label: 'Inventario', img: '/preview-inventory.png', desc: 'Control de stock con alertas de merma, niveles mínimos y registro de ingredientes por unidad.' },
         ];
         const tab = tabs[activeTab];
         return (
-          <section id="preview" className="preview-section" style={{ background: 'linear-gradient(180deg, rgba(139,92,246,0.04) 0%, transparent 100%)' }}>
-            <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-              <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <section id="preview" className="preview-section">
+            <div className="preview-section-content">
+              <div className="preview-headline-wrap">
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 14px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', borderRadius: 99, marginBottom: 16 }}>
                   <img src="/logo.png" alt="RestoPOS Logo" style={{ width: 18, height: 18, objectFit: 'contain' }} />
                   <span style={{ color: '#c084fc', fontSize: 12, fontWeight: 600 }}>Vista previa de la aplicación</span>
@@ -546,63 +922,72 @@ export default function LandingUI() {
                 <p style={{ color: '#94a3b8', fontSize: 'clamp(14px, 2vw, 16px)', maxWidth: 600, margin: '0 auto' }}>Explora cada módulo del sistema antes de suscribirte. Una plataforma diseñada para cada rol de tu equipo.</p>
               </div>
 
-              {/* Tabs */}
-              <div className="preview-tabs" role="tablist" aria-label="Módulos de la aplicación">
-                {tabs.map((t, i) => (
-                  <button
-                    key={i}
-                    role="tab"
-                    aria-selected={activeTab === i}
-                    className={`preview-tab${activeTab === i ? ' active' : ''}`}
-                    onClick={() => setActiveTab(i)}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
+              <div className="preview-showcase-shell">
+                <div className="preview-showcase-grid">
+                  <div>
+                    <h3 className="preview-copy-title">Interfaz POS lista para alto flujo de pedidos</h3>
+                    <p className="preview-copy-subtitle">Diseño operativo para restaurantes en servicio real: rápido, claro y pensado para que cada rol trabaje sin fricción.</p>
 
-              {/* Browser frame */}
-              <div className="preview-browser">
-                {/* Browser top bar */}
-                <div className="preview-browser-bar">
-                  <div className="preview-browser-dots">
-                    <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#ff5f57', display: 'block' }} />
-                    <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#febc2e', display: 'block' }} />
-                    <span style={{ width: 12, height: 12, borderRadius: '50%', background: '#28c840', display: 'block' }} />
+                    <div className="preview-benefits">
+                      <span className="preview-benefit-pill"><CheckCircle2 size={13} /> Operación en tiempo real</span>
+                      <span className="preview-benefit-pill"><CheckCircle2 size={13} /> Diseño optimizado para tablets</span>
+                      <span className="preview-benefit-pill"><CheckCircle2 size={13} /> Flujo meseros + cocina sincronizado</span>
+                      <span className="preview-benefit-pill"><CheckCircle2 size={13} /> Branding RestoPOS</span>
+                    </div>
+
+                    <div className="preview-metrics">
+                      <div className="preview-metric-logo">
+                        <img src="/logo.png" alt="Logo RestoPOS" />
+                      </div>
+                      <div>
+                        <div className="preview-metric-value">80+</div>
+                        <div className="preview-metric-label">pantallas y vistas operativas del sistema</div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="preview-browser-url">
-                    <img src="/logo.png" alt="RestoPOS" style={{ width: 14, height: 14, objectFit: 'contain', opacity: 0.7 }} />
-                    <span>restopos.movilcomts.com</span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <img src="/logo.png" alt="RestoPOS" style={{ width: 20, height: 20, objectFit: 'contain' }} />
-                    <span style={{ fontSize: 12, fontWeight: 700, color: '#f8fafc' }}>RestoPOS</span>
+
+                  <div className="preview-devices">
+                    <div className="preview-laptop">
+                      <div className="preview-browser-bar">
+                        <div className="preview-browser-dots">
+                          <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#fb7185', display: 'block' }} />
+                          <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#fbbf24', display: 'block' }} />
+                          <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#4ade80', display: 'block' }} />
+                        </div>
+                        <div className="preview-browser-url">
+                          <img src="/logo.png" alt="RestoPOS" style={{ width: 13, height: 13, objectFit: 'contain', opacity: 0.9 }} />
+                          <span>restopos.movilcomts.com</span>
+                        </div>
+                      </div>
+                      <img key={activeTab} src={tab.img} alt={`RestoPOS - ${tab.label}`} className="preview-img-enter" loading="lazy" />
+                    </div>
+
+                    <div className="preview-phone">
+                      <div className="preview-phone-notch" />
+                      <img key={`phone-${activeTab}`} src="/preview-waiter.png" alt="RestoPOS móvil para meseros" className="preview-img-enter" loading="lazy" />
+                    </div>
                   </div>
                 </div>
 
-                {/* Screenshot */}
-                <div style={{ position: 'relative', background: '#09090b' }}>
-                  <img
-                    key={activeTab}
-                    src={tab.img}
-                    alt={`RestoPOS - ${tab.label}`}
-                    className="preview-img-enter"
-                    loading="lazy"
-                  />
-                  {/* Overlay gradient at bottom */}
-                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '35%', background: 'linear-gradient(to top, rgba(9,9,11,0.95), transparent)', pointerEvents: 'none' }} />
-                  {/* Caption */}
-                  <div style={{ position: 'absolute', bottom: 20, left: 0, right: 0, textAlign: 'center', padding: '0 24px' }}>
-                    <p style={{ color: '#e2e8f0', fontSize: 'clamp(13px, 2vw, 15px)', fontWeight: 500, lineHeight: 1.5, textShadow: '0 1px 4px rgba(0,0,0,0.8)', maxWidth: 700, margin: '0 auto' }}>
-                      {tab.desc}
-                    </p>
-                  </div>
+                <div className="preview-tabs" role="tablist" aria-label="Módulos de la aplicación">
+                  {tabs.map((t, i) => (
+                    <button
+                      key={i}
+                      role="tab"
+                      aria-selected={activeTab === i}
+                      className={`preview-tab${activeTab === i ? ' active' : ''}`}
+                      onClick={() => setActiveTab(i)}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
                 </div>
+
+                <p className="preview-caption">{tab.desc}</p>
               </div>
 
-              {/* CTA below preview */}
               <div style={{ textAlign: 'center', marginTop: 36 }}>
-                <a href="/pos" onClick={() => trackCampaignEvent('cta_click', { cta_id: 'preview_login' })} className="btn-cta" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '13px 28px', background: 'linear-gradient(135deg, #8b5cf6, #3b82f6)', color: '#fff', borderRadius: 14, textDecoration: 'none', fontWeight: 600, fontSize: 15 }}>
+                <a href="/pos" onClick={() => trackCampaignEvent('cta_click', { cta_id: 'preview_login' })} className="btn-cta" style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '13px 28px', background: 'linear-gradient(135deg, #f97316, #7c3aed 52%, #2563eb)', color: '#fff', borderRadius: 14, textDecoration: 'none', fontWeight: 600, fontSize: 15, boxShadow: '0 16px 28px rgba(37,99,235,0.18)' }}>
                   <img src="/logo.png" alt="" style={{ width: 20, height: 20, objectFit: 'contain' }} />
                   Probar RestoPOS ahora <ArrowRight size={17} />
                 </a>
@@ -638,15 +1023,108 @@ export default function LandingUI() {
         </div>
       </section>
 
+      {/* ── PWA INSTALL SECTION ── */}
+      <section style={{ padding: 'clamp(48px,8vw,80px) 20px', background: 'rgba(139,92,246,0.05)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ maxWidth: 900, margin: '0 auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 40, alignItems: 'center' }}>
+            {/* Left: Logo y descripción */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              <div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 16px', background: 'rgba(139, 92, 246, 0.12)', border: '1px solid rgba(139, 92, 246, 0.25)', borderRadius: '99px', marginBottom: 20 }}>
+                  <Cloud size={15} color="#c084fc" />
+                  <span style={{ color: '#c084fc', fontSize: 13, fontWeight: 600 }}>Aplicación Instalable</span>
+                </div>
+                <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, marginBottom: 16, color: '#f8fafc', lineHeight: 1.2 }}>Instala RestoPOS en tu dispositivo</h2>
+                <p style={{ color: '#94a3b8', fontSize: 'clamp(14px, 2vw, 16px)', lineHeight: 1.65, marginBottom: 28 }}>
+                  Accede a la plataforma como una aplicación nativa desde tu tablet, iPad o smartphone. Funciona incluso sin conexión a internet y recibe notificaciones en tiempo real.
+                </p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 28 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <CheckCircle2 size={18} color="#10b981" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span style={{ color: '#cbd5e1', fontSize: 14 }}>Acceso instantáneo sin abrir navegador</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <CheckCircle2 size={18} color="#10b981" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span style={{ color: '#cbd5e1', fontSize: 14 }}>Compatible con IoS, Android y Windows</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <CheckCircle2 size={18} color="#10b981" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span style={{ color: '#cbd5e1', fontSize: 14 }}>Sincronización automática en la nube</span>
+                  </div>
+                </div>
+
+                {showInstallPrompt && deferredPrompt && (
+                  <button
+                    onClick={handleInstallApp}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '14px 28px', background: 'linear-gradient(135deg, #f97316, #7c3aed 52%, #2563eb)', color: '#fff', borderRadius: 14, textDecoration: 'none', fontWeight: 600, fontSize: 15, border: 'none', cursor: 'pointer', transition: 'all 200ms', boxShadow: '0 16px 28px rgba(37,99,235,0.18)' }}
+                    onMouseEnter={(e) => { (e.target as HTMLElement).style.transform = 'translateY(-2px)'; (e.target as HTMLElement).style.boxShadow = '0 12px 24px rgba(139,92,246,0.4)'; }}
+                    onMouseLeave={(e) => { (e.target as HTMLElement).style.transform = 'translateY(0)'; (e.target as HTMLElement).style.boxShadow = 'none'; }}
+                  >
+                    <Download size={17} />
+                    Instalar Aplicación
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Right: Visual mockup */}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ 
+                position: 'relative',
+                width: 'min(100%, 300px)',
+                aspectRatio: '9/16',
+                background: 'linear-gradient(135deg, #1e1e2e 0%, #2d2d3d 100%)',
+                borderRadius: 32,
+                border: '8px solid #0e0e10',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 20,
+                padding: 24,
+                boxShadow: '0 20px 60px rgba(139,92,246,0.2), inset 0 1px 0 rgba(255,255,255,0.1)'
+              }}>
+                {/* Notch */}
+                <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '35%', height: 24, background: '#0e0e10', borderRadius: '0 0 20px 20px', zIndex: 10 }} />
+
+                {/* Content */}
+                <img 
+                  src="/logo.png" 
+                  alt="RestoPOS" 
+                  style={{ width: 64, height: 64, objectFit: 'contain', marginTop: 16 }} 
+                />
+                <div style={{ textAlign: 'center' }}>
+                  <h3 style={{ fontSize: 18, fontWeight: 700, color: '#f8fafc', margin: '0 0 4px 0' }}>RestoPOS</h3>
+                  <p style={{ fontSize: 13, color: '#94a3b8', margin: 0 }}>restopos.movilcomts.com</p>
+                </div>
+
+                {/* Glow effect */}
+                <div style={{ 
+                  position: 'absolute',
+                  bottom: 60,
+                  width: 140,
+                  height: 140,
+                  background: 'radial-gradient(circle, rgba(139,92,246,0.3) 0%, transparent 70%)',
+                  borderRadius: '50%',
+                  filter: 'blur(30px)',
+                  pointerEvents: 'none'
+                }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── PRICING ── */}
       <section id="pricing" className="pricing-section">
-        <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, marginBottom: 14, color: '#f8fafc' }}>Adquiere tu licencia</h2>
+        <h2 style={{ fontSize: 'clamp(24px, 4vw, 36px)', fontWeight: 700, marginBottom: 14, color: '#f8fafc' }}>Prueba 7 días y activa tu licencia</h2>
         <p style={{ color: '#94a3b8', fontSize: 'clamp(14px, 2vw, 16px)', marginBottom: 48, maxWidth: 560, margin: '0 auto 48px' }}>
-          Potencia tu restaurante hoy mismo con un sistema diseñado para profesionales.
+          Empieza con una prueba operativa de 7 días. Si quieres seguir usando RestoPOS después del trial, activas la licencia anual.
         </p>
 
         <div style={{ maxWidth: 420, margin: '0 auto', background: 'rgba(24, 24, 27, 0.7)', border: '1px solid rgba(139, 92, 246, 0.4)', borderRadius: 24, padding: 'clamp(28px, 6vw, 40px) clamp(20px, 5vw, 32px)', position: 'relative', overflow: 'hidden', backdropFilter: 'blur(16px)' }}>
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 4, background: 'linear-gradient(90deg, #8b5cf6, #3b82f6)' }} />
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 4, background: 'linear-gradient(90deg, #f97316, #7c3aed 52%, #2563eb)' }} />
           <h3 style={{ fontSize: 'clamp(20px, 3vw, 24px)', fontWeight: 700, color: '#f8fafc', marginBottom: 8 }}>Plan Anual</h3>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 4, marginBottom: 24 }}>
             <span style={{ fontSize: 18, color: '#94a3b8', fontWeight: 600 }}>$</span>
@@ -661,8 +1139,8 @@ export default function LandingUI() {
 
           <div style={{ padding: '13px 16px', background: 'rgba(249, 115, 22, 0.1)', borderRadius: 12, border: '1px solid rgba(249, 115, 22, 0.22)', marginBottom: 24, textAlign: 'left' }}>
             <p style={{ color: '#fb923c', fontSize: 13, margin: 0, fontWeight: 500, lineHeight: 1.55 }}>
-              <span style={{ display: 'block', marginBottom: 4, fontWeight: 600, color: '#fdba74' }}>🔒 Requisito de Acceso</span>
-              Para obtener acceso completo a RestoPOS, el pago de la licencia anual debe realizarse por adelantado.
+              <span style={{ display: 'block', marginBottom: 4, fontWeight: 600, color: '#fdba74' }}>⏳ Prueba Gratuita</span>
+              Todos los restaurantes empiezan con 7 días de prueba. Al finalizar ese periodo, se solicita el pago de la licencia anual para seguir usando el sistema.
             </p>
           </div>
 
@@ -740,7 +1218,7 @@ export default function LandingUI() {
             <p style={{ color: '#94a3b8', fontSize: 14, lineHeight: 1.65, marginBottom: 20 }}>
               Sistema POS premium líder en la gestión de alta eficiencia y control exacto para restaurantes en toda la región.
             </p>
-            <a href="https://www.movilcomts.com" aria-label="Contactar al equipo de ventas" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#8b5cf6', fontSize: 14, textDecoration: 'none', fontWeight: 600 }}>
+            <a href="https://www.movilcomts.com" aria-label="Contactar al equipo de ventas" target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#7dd3fc', fontSize: 14, textDecoration: 'none', fontWeight: 600 }}>
               <MessageCircle size={16} /> Contactar a Ventas
             </a>
           </div>
@@ -775,33 +1253,41 @@ export default function LandingUI() {
 
       {/* ── MODAL ── */}
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '20px' }}>
-          <div style={{ background: '#18181b', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 22, width: '100%', maxWidth: 480, overflow: 'hidden', animation: 'fadeUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) both' }}>
-            <div style={{ padding: '22px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div className="pricing-modal-overlay">
+          <div className="pricing-modal-card">
+            <div className="pricing-modal-header">
               <div>
-                <h3 style={{ fontSize: 20, fontWeight: 700, color: '#f8fafc', marginBottom: 4 }}>Crear tu cuenta</h3>
-                <p style={{ color: '#94a3b8', fontSize: 14, margin: 0 }}>Completa estos datos antes del pago para configurar tu sistema.</p>
+                <div className="pricing-modal-brand">
+                  <div className="pricing-modal-logo">
+                    <img src="/logo.png" alt="Logo RestoPOS" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, color: '#93c5fd', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>RestoPOS · Trial 7 días</div>
+                    <h3 style={{ fontSize: 24, fontWeight: 800, color: '#f8fafc', margin: 0, letterSpacing: '-0.03em' }}>Crear tu cuenta</h3>
+                  </div>
+                </div>
+                <p style={{ color: '#94a3b8', fontSize: 14, margin: 0, maxWidth: 360, lineHeight: 1.6 }}>Completa estos datos para preparar tu prueba de 7 días. Cuando el trial termine, te pediremos activar la licencia para seguir operando.</p>
               </div>
-              <button onClick={() => setShowModal(false)} style={{ background: 'transparent', border: 'none', color: '#a1a1aa', cursor: 'pointer', padding: 4, flexShrink: 0 }}>
+              <button onClick={() => setShowModal(false)} className="pricing-modal-close">
                 <X size={22} />
               </button>
             </div>
-            <form onSubmit={handlePaymentSubmit} style={{ padding: '22px 24px' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 28 }}>
-                <div>
-                  <label htmlFor="restaurantName" style={{ display: 'block', color: '#cbd5e1', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Nombre del Restaurante *</label>
+            <form onSubmit={handlePaymentSubmit} className="pricing-modal-form">
+              <div className="pricing-modal-grid">
+                <div className="pricing-modal-field">
+                  <label htmlFor="restaurantName" className="pricing-modal-label">Nombre del Restaurante *</label>
                   <input required id="restaurantName" type="text" className="modal-input" value={formData.restaurantName} onChange={e => setFormData({...formData, restaurantName: e.target.value})} placeholder="Ej. Pizzería La Mamma" />
                 </div>
-                <div>
-                  <label htmlFor="nit" style={{ display: 'block', color: '#cbd5e1', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>NIT / Documento Identidad *</label>
+                <div className="pricing-modal-field">
+                  <label htmlFor="nit" className="pricing-modal-label">NIT / Documento Identidad *</label>
                   <input required id="nit" type="text" className="modal-input" value={formData.nit} onChange={e => setFormData({...formData, nit: e.target.value})} placeholder="Ej. 900.123.456-7" />
                 </div>
-                <div>
-                  <label htmlFor="email" style={{ display: 'block', color: '#cbd5e1', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Correo Electrónico *</label>
+                <div className="pricing-modal-field">
+                  <label htmlFor="email" className="pricing-modal-label">Correo Electrónico *</label>
                   <input required id="email" type="email" className="modal-input" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="gerencia@restaurante.com" />
                 </div>
-                <div>
-                  <label htmlFor="phone" style={{ display: 'block', color: '#cbd5e1', fontSize: 13, fontWeight: 600, marginBottom: 6 }}>Teléfono Movil *</label>
+                <div className="pricing-modal-field">
+                  <label htmlFor="phone" className="pricing-modal-label">Teléfono Móvil *</label>
                   <input required id="phone" type="tel" className="modal-input" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} placeholder="+57 300 000 0000" />
                 </div>
               </div>
@@ -809,10 +1295,12 @@ export default function LandingUI() {
               <button
                 type="submit"
                 disabled={isProcessingPayment}
-                className="btn-cta"
-                style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', padding: '16px', background: 'linear-gradient(135deg, #8b5cf6, #6d28d9)', color: '#fff', borderRadius: '12px', border: 'none', cursor: isProcessingPayment ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: 16, fontFamily: 'inherit', opacity: isProcessingPayment ? 0.7 : 1 }}>
+                className="btn-cta pricing-modal-submit"
+                style={{ opacity: isProcessingPayment ? 0.7 : 1, cursor: isProcessingPayment ? 'not-allowed' : 'pointer' }}>
                 {isProcessingPayment ? <><Loader2 size={20} style={{ marginRight: 8, animation: 'spin 1s linear infinite' }} /> Procesando pago...</> : 'Continuar al pago seguro'}
               </button>
+
+              <p className="pricing-modal-note">Tus datos se usan para preparar la activación inicial de tu restaurante y dejar listo el trial de 7 días.</p>
             </form>
           </div>
         </div>

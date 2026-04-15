@@ -6,9 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:ga": "node src/scripts/check-ga.mjs",
+    "deploy:prod": "vercel --prod --yes",
+    "deploy:prod:verify": "npm run deploy:prod && npm run check:ga",
+    "seo:monthly": "node src/scripts/seo-monthly-report.mjs",
+    "deploy:prod:seo": "npm run deploy:prod:verify && npm run seo:monthly"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.103.2",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
     "lucide-react": "^0.577.0",

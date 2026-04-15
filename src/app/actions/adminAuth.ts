@@ -1,29 +1,31 @@
 'use server';
 
-import db from '@/lib/db';
 import bcrypt from 'bcryptjs';
 import { authenticator } from 'otplib';
 import QRCode from 'qrcode';
+import { getSupabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
+import { getRestaurantSetting } from '@/lib/opsData';
 
-// Initialize the database table
-async function initDb() {
-  await db.execute(`
-    CREATE TABLE IF NOT EXISTS sistema_admin (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      totp_secret TEXT,
-      totp_enabled INTEGER DEFAULT 0
-    )
-  `);
+function requireSupabase() {
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase no configurado para autenticación admin.');
+  }
+
+  return getSupabaseAdmin();
 }
 
 export async function checkAdminExists() {
-  await initDb();
   try {
-    const result = await db.execute(`SELECT COUNT(*) as count FROM sistema_admin`);
-    const count = parseInt(String(result.rows[0].count), 10);
-    return { success: true, exists: count > 0 };
+    const supabase = requireSupabase();
+    const { count, error } = await supabase
+      .from('sistema_admin')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, exists: (count || 0) > 0 };
   } catch (e) {
     console.error(e);
     return { success: false, error: 'Database error' };
@@ -38,11 +40,14 @@ export async function createInitialAdmin(username: string, passwordPlain: string
     }
     
     const hash = await bcrypt.hash(passwordPlain, 10);
-    
-    await db.execute({
-      sql: `INSERT INTO sistema_admin (username, password_hash) VALUES (?, ?)`,
-      args: [username, hash]
-    });
+    const supabase = requireSupabase();
+    const { error } = await supabase
+      .from('sistema_admin')
+      .insert({ username, password_hash: hash, totp_enabled: 0 });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
     
     return { success: true };
   } catch (e) {
@@ -52,18 +57,24 @@ export async function createInitialAdmin(username: string, passwordPlain: string
 }
 
 export async function loginAdmin(username: string, passwordPlain: string, totpCode?: string) {
-  await initDb();
   try {
-     const result = await db.execute({
-       sql: `SELECT * FROM sistema_admin WHERE username = ?`,
-       args: [username]
-     });
-     
-     if (!result.rows || result.rows.length === 0) {
+     const supabase = requireSupabase();
+     const { data, error } = await supabase
+       .from('sistema_admin')
+       .select('*')
+       .eq('username', username)
+       .maybeSingle();
+
+     if (error) {
+       return { success: false, error: error.message };
+     }
+
+     if (!data) {
        return { success: false, error: 'Credenciales inválidas.' };
      }
-     
-     const user = result.rows[0];
+
+     const user = data;
+
      const isValid = await bcrypt.compare(passwordPlain, user.password_hash as string);
      
      if (!isValid) {
@@ -94,8 +105,8 @@ export async function generate2FASecret(username: string) {
    const secret = authenticator.generateSecret();
    
    // Formulate issuer conditionally
-   const restaurantResult = await db.execute(`SELECT valor FROM configuracion_restaurante WHERE clave = 'restaurant_name'`).catch(()=>({rows:[]}));
-   const appName = restaurantResult.rows?.[0] ? restaurantResult.rows[0].valor : 'RestoPOS';
+   requireSupabase();
+   const appName = (await getRestaurantSetting('restaurant_name')) || 'RestoPOS';
    
    // Build the key URI
    const otpauth = authenticator.keyuri(username, String(appName), secret);
@@ -118,10 +129,16 @@ export async function verifyAndEnable2FA(username: string, token: string, secret
    }
    
    try {
-      await db.execute({
-         sql: `UPDATE sistema_admin SET totp_secret = ?, totp_enabled = 1 WHERE username = ?`,
-         args: [secret, username]
-      });
+      const supabase = requireSupabase();
+      const { error } = await supabase
+        .from('sistema_admin')
+        .update({ totp_secret: secret, totp_enabled: 1 })
+        .eq('username', username);
+
+      if (error) {
+        return { success: false, error: error.message };
+      }
+
       return { success: true };
    } catch (e) {
       console.error(e);
@@ -131,12 +148,16 @@ export async function verifyAndEnable2FA(username: string, token: string, secret
 
 export async function check2FAStatus(username: string) {
   try {
-    const result = await db.execute({
-       sql: `SELECT totp_enabled FROM sistema_admin WHERE username = ?`,
-       args: [username]
-    });
-    if (!result.rows || result.rows.length === 0) return { success: false, exists: false };
-    return { success: true, enabled: result.rows[0].totp_enabled === 1 };
+    const supabase = requireSupabase();
+    const { data, error } = await supabase
+      .from('sistema_admin')
+      .select('totp_enabled')
+      .eq('username', username)
+      .maybeSingle();
+
+    if (error) return { success: false, error: error.message };
+    if (!data) return { success: false, exists: false };
+    return { success: true, enabled: data.totp_enabled === 1 };
   } catch (e) {
     return { success: false, error: 'Error accediendo al sistema admin.' };
   }
@@ -144,23 +165,28 @@ export async function check2FAStatus(username: string) {
 
 export async function disable2FA(username: string, token: string) {
    try {
-     const dbResult = await db.execute({
-       sql: `SELECT totp_secret, totp_enabled FROM sistema_admin WHERE username = ?`,
-       args: [username]
-     });
-     
-     if (!dbResult.rows || dbResult.rows.length === 0) return { success: false, error: 'Administrador no encontrado.' };
-     const user = dbResult.rows[0];
+     const supabase = requireSupabase();
+     const { data, error } = await supabase
+       .from('sistema_admin')
+       .select('totp_secret, totp_enabled')
+       .eq('username', username)
+       .maybeSingle();
+
+     if (error) return { success: false, error: error.message };
+     if (!data) return { success: false, error: 'Administrador no encontrado.' };
+     const user = data;
      
      if (user.totp_enabled !== 1) return { success: false, error: 'La seguridad doble paso ya estaba apagada.' };
      
      const isValid = authenticator.check(token, user.totp_secret as string);
      if (!isValid) return { success: false, error: 'Código inválido. No se puede remover el cerrojo sin comprobar tu identidad.' };
-     
-     await db.execute({
-        sql: `UPDATE sistema_admin SET totp_enabled = 0, totp_secret = NULL WHERE username = ?`,
-        args: [username]
-     });
+
+     const { error: updateError } = await supabase
+       .from('sistema_admin')
+       .update({ totp_enabled: 0, totp_secret: null })
+       .eq('username', username);
+
+     if (updateError) return { success: false, error: updateError.message };
      
      return { success: true };
    } catch(e) {

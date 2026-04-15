@@ -1,10 +1,16 @@
 'use server';
-import db from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import {
+  addInventarioData,
+  adjustInventarioCantidadData,
+  deleteInventarioData,
+  getInventarioData,
+  updateInventarioData
+} from '@/lib/opsBackofficeData';
 
 export async function getInventario() {
   try {
-    const items = db.prepare(`SELECT * FROM inventario ORDER BY categoria, nombre`).all();
+    const items = await getInventarioData();
     return { success: true, data: items };
   } catch (e: any) {
     return { success: false, error: e.message };
@@ -21,17 +27,9 @@ export async function addInventarioItem(data: {
   proveedor?: string;
 }) {
   try {
-    const stmt = db.prepare(`
-      INSERT INTO inventario (nombre, categoria, unidad, cantidad, cantidad_minima, costo_unitario, proveedor)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-    const result = stmt.run(
-      data.nombre, data.categoria, data.unidad,
-      data.cantidad, data.cantidad_minima, data.costo_unitario,
-      data.proveedor || null
-    );
+    const id = await addInventarioData(data);
     revalidatePath('/');
-    return { success: true, id: result.lastInsertRowid };
+    return { success: true, id };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
@@ -47,9 +45,7 @@ export async function updateInventarioItem(id: number, data: {
   proveedor?: string;
 }) {
   try {
-    const fields = Object.keys(data).map(k => `${k} = ?`).join(', ');
-    const vals = [...Object.values(data), id];
-    db.prepare(`UPDATE inventario SET ${fields}, fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = ?`).run(...vals);
+    await updateInventarioData(id, data);
     revalidatePath('/');
     return { success: true };
   } catch (e: any) {
@@ -59,7 +55,7 @@ export async function updateInventarioItem(id: number, data: {
 
 export async function deleteInventarioItem(id: number) {
   try {
-    db.prepare(`DELETE FROM inventario WHERE id = ?`).run(id);
+    await deleteInventarioData(id);
     revalidatePath('/');
     return { success: true };
   } catch (e: any) {
@@ -69,7 +65,7 @@ export async function deleteInventarioItem(id: number) {
 
 export async function ajustarCantidad(id: number, delta: number) {
   try {
-    db.prepare(`UPDATE inventario SET cantidad = MAX(0, cantidad + ?), fecha_actualizacion = CURRENT_TIMESTAMP WHERE id = ?`).run(delta, id);
+    await adjustInventarioCantidadData(id, delta);
     revalidatePath('/');
     return { success: true };
   } catch (e: any) {

@@ -1,14 +1,22 @@
 const STORAGE_KEY = 'restopos_campaign_tracking';
 const TRACKING_API_URL = (process.env.NEXT_PUBLIC_TRACKING_API_URL || '').trim();
+const SESSION_TTL_MS = 30 * 60 * 1000;
+const MAX_VALUE_LENGTH = 200;
 
 const ATTRIBUTION_KEYS = [
+  'utm_id',
   'utm_source',
   'utm_medium',
   'utm_campaign',
   'utm_term',
   'utm_content',
+  'utm_source_platform',
+  'utm_creative_format',
+  'utm_marketing_tactic',
   'gclid',
   'fbclid',
+  'gbraid',
+  'wbraid',
   'msclkid',
   'ttclid'
 ] as const;
@@ -24,6 +32,15 @@ type CampaignTracking = {
   first_seen_at?: string;
   last_seen_at?: string;
 };
+
+type GtagParams = Record<string, string | number | boolean | null | undefined>;
+
+declare global {
+  interface Window {
+    dataLayer?: unknown[];
+    gtag?: (...args: unknown[]) => void;
+  }
+}
 
 const readTracking = (): CampaignTracking | null => {
   if (typeof window === 'undefined') return null;
@@ -42,6 +59,15 @@ const writeTracking = (value: CampaignTracking) => {
 
 const nowIso = () => new Date().toISOString();
 
+const sanitizeValue = (value: string) => value.trim().slice(0, MAX_VALUE_LENGTH);
+
+const isExpired = (tracking: CampaignTracking | null) => {
+  if (!tracking?.last_seen_at) return false;
+  const lastSeen = Date.parse(tracking.last_seen_at);
+  if (Number.isNaN(lastSeen)) return false;
+  return Date.now() - lastSeen > SESSION_TTL_MS;
+};
+
 const createSessionId = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -56,18 +82,49 @@ const getAttributionFromSearch = () => {
 
   ATTRIBUTION_KEYS.forEach((key) => {
     const value = params.get(key);
-    if (value) picked[key] = value;
+    if (value) picked[key] = sanitizeValue(value);
   });
 
   return picked;
 };
 
+const hasAttribution = (value: Attribution) => Object.keys(value).length > 0;
+
+const getEventAttribution = (tracking: CampaignTracking | null): Attribution | undefined => {
+  if (!tracking) return undefined;
+  return tracking.last_touch || tracking.first_touch;
+};
+
+const toGtagParams = (tracking: CampaignTracking | null, metadata?: Record<string, unknown>): GtagParams => {
+  const attribution = getEventAttribution(tracking);
+  const params: GtagParams = {
+    page_path: typeof window === 'undefined' ? undefined : `${window.location.pathname}${window.location.search}`,
+    session_id: tracking?.session_id,
+    first_landing_path: tracking?.first_landing_path,
+    initial_referrer: tracking?.initial_referrer,
+    ...(attribution || {})
+  };
+
+  Object.entries(metadata || {}).forEach(([key, value]) => {
+    if (value === null || value === undefined) return;
+    if (typeof value === 'string') {
+      params[key] = value.slice(0, MAX_VALUE_LENGTH);
+      return;
+    }
+    if (typeof value === 'number' || typeof value === 'boolean') {
+      params[key] = value;
+    }
+  });
+
+  return params;
+};
+
 export const captureCampaignTracking = () => {
   if (typeof window === 'undefined') return null;
 
-  const existing = readTracking() || {};
+  const existing = isExpired(readTracking()) ? {} : (readTracking() || {});
   const attr = getAttributionFromSearch();
-  const hasAttr = Object.keys(attr).length > 0;
+  const hasAttr = hasAttribution(attr);
   const now = nowIso();
 
   const tracking: CampaignTracking = {
@@ -93,11 +150,16 @@ export const captureCampaignTracking = () => {
 export const getCampaignTracking = () => readTracking();
 
 export const trackCampaignEvent = (event: string, metadata?: Record<string, unknown>) => {
-  if (typeof window === 'undefined' || !TRACKING_API_URL) return;
+  if (typeof window === 'undefined') return;
 
   const tracking = getCampaignTracking() || {};
-  const attribution = tracking.last_touch || tracking.first_touch;
-  if (!tracking.session_id) return;
+  const attribution = getEventAttribution(tracking);
+
+  if (window.gtag) {
+    window.gtag('event', event, toGtagParams(tracking, metadata));
+  }
+
+  if (!TRACKING_API_URL || !tracking.session_id) return;
 
   const payload = {
     session_id: tracking.session_id,
@@ -120,6 +182,36 @@ export const trackCampaignEvent = (event: string, metadata?: Record<string, unkn
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body
+  }).catch(() => {
+    // Ignore tracking failures to avoid impacting UX.
+  });
+};
+
+export const trackCampaignPageView = () => {
+  if (typeof window === 'undefined') return;
+
+  const tracking = captureCampaignTracking();
+  if (!tracking?.session_id) return;
+
+  if (window.gtag) {
+    window.gtag('event', 'page_view', toGtagParams(tracking));
+  }
+
+  if (!TRACKING_API_URL) return;
+
+  const payload = {
+    session_id: tracking.session_id,
+    event: 'page_view',
+    page_path: `${window.location.pathname}${window.location.search}`,
+    referrer: document.referrer || undefined,
+    source_app: 'restaurante-web-next',
+    attribution: getEventAttribution(tracking)
+  };
+
+  fetch(TRACKING_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
   }).catch(() => {
     // Ignore tracking failures to avoid impacting UX.
   });

@@ -21,6 +21,30 @@ Mejorar posicionamiento organico para busquedas transaccionales y de investigaci
   - /blog/facturacion-electronica-dian-restaurantes
   - /blog/control-inventario-restaurantes
 
+## SEO On-Page (Checklist Editorial por Publicacion)
+1. Definir keyword primaria y 3-5 keywords secundarias por URL.
+2. Titulo SEO de 50-60 caracteres con keyword al inicio.
+3. Meta description de 140-160 caracteres con propuesta de valor y CTA.
+4. 1 solo H1 por pagina y subtitulos H2/H3 orientados a intencion de busqueda.
+5. Incluir 2-4 enlaces internos hacia URLs del cluster (blog, home, /dian-docs).
+6. Incluir 1-2 enlaces externos a fuentes confiables (DIAN, Google Search Central, etc.).
+7. Agregar datos estructurados (Article + BreadcrumbList o FAQ cuando aplique).
+8. Validar canonical, Open Graph, Twitter cards y indexabilidad.
+
+## Mapa de Keywords por Intencion
+- Comercial alta:
+  - software POS para restaurantes
+  - sistema POS Colombia
+  - software para restaurantes con facturacion DIAN
+- Informacional transaccional:
+  - facturacion electronica DIAN restaurantes
+  - control de inventario para restaurantes
+  - como elegir software POS para restaurante
+- Navegacional de marca:
+  - RestoPOS
+  - RestoPOS DIAN
+  - RestoPOS blog
+
 ## SEO Off-Page (Plan 90 dias)
 1. Citaciones y perfiles:
 - Google Business Profile (si aplica marca local).
@@ -39,6 +63,20 @@ Mejorar posicionamiento organico para busquedas transaccionales y de investigaci
 4. Autoridad de marca:
 - Recolectar y publicar testimonios verificables.
 - Conseguir menciones de marca en medios del sector Horeca.
+
+## Off-Page Operativo (Sprints)
+- Sprint 1 (Semanas 1-2):
+  - Crear listado de 40 dominios objetivo (Horeca, SaaS, contabilidad, pymes Colombia).
+  - Publicar 3 piezas "linkable" (guia DIAN, benchmark inventario, checklist POS).
+  - KPI: 5 backlinks nuevos, 10 menciones de marca.
+- Sprint 2 (Semanas 3-6):
+  - Ejecutar outreach con propuesta de guest post y casos de uso de clientes.
+  - Cerrar 4 colaboraciones editoriales y 2 menciones en medios verticales.
+  - KPI: +8 dominios de referencia, mejora de posicion media en keywords comerciales.
+- Sprint 3 (Semanas 7-12):
+  - Publicar estudio de datos propio (ej. ticket promedio y horas pico por tipo de restaurante).
+  - Activar PR digital y redistribucion en comunidades/boletines del sector.
+  - KPI: +12 dominios de referencia y aumento de sesiones organicas no-brand.
 
 ## KPIs
 - Impresiones organicas (GSC).
@@ -68,3 +106,22 @@ Mejorar posicionamiento organico para busquedas transaccionales y de investigaci
 - Actualizar sitemap y comprobar URLs canonicas.
 - Auditar enlaces rotos internos/externos.
 - Evaluar oportunidades de snippets enriquecidos (FAQ, SoftwareApplication).
+
+## Dashboard y Export Mensual (Automatizado)
+- Comando unico con deploy + validacion + reporte SEO mensual:
+  - `npm run deploy:prod:seo`
+- Comando solo reporte mensual SEO:
+  - `npm run seo:monthly`
+
+Archivos generados automaticamente:
+- `reports/seo-monthly-YYYY-MM.md` (score tecnico + checklist)
+- `reports/seo-kpi-monthly.csv` (historico de KPIs por mes)
+
+Variables opcionales para completar KPIs con datos reales de GSC/GA4:
+- `SEO_GSC_IMPRESSIONS`
+- `SEO_GSC_CTR`
+- `SEO_GSC_AVG_POSITION`
+- `SEO_GA4_ORGANIC_SESSIONS`
+- `SEO_GA4_ORGANIC_CONVERSIONS`
+- `SEO_BACKLINKS_NEW`
+- `SEO_REFERRING_DOMAINS`

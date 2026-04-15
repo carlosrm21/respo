@@ -1,11 +1,21 @@
 'use server';
-import db from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import { getSupabaseAdmin } from '@/lib/supabaseAdmin';
+import { hashPin, validateNewPin } from '@/lib/pinSecurity';
 
 export async function getMeseros() {
   try {
-    const meseros = db.prepare(`SELECT * FROM meseros ORDER BY nombre`).all();
-    return { success: true, data: meseros };
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('meseros')
+      .select('id, nombre, rol, activo, pin')
+      .order('nombre', { ascending: true });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: data || [] };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
@@ -13,17 +23,55 @@ export async function getMeseros() {
 
 export async function addMesero(nombre: string, pin: string) {
   try {
-    const result = db.prepare(`INSERT INTO meseros (nombre, pin, activo) VALUES (?, ?, 1)`).run(nombre, pin);
+    const validation = await validateNewPin(pin);
+    if (!validation.ok || !validation.pin) {
+      return { success: false, error: validation.error };
+    }
+
+    const hashedPin = await hashPin(validation.pin);
+
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from('meseros')
+      .insert({ nombre, pin: hashedPin, activo: 1, rol: 'waiter' })
+      .select('id')
+      .single();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
     revalidatePath('/');
-    return { success: true, id: result.lastInsertRowid };
+    return { success: true, id: data?.id };
   } catch (e: any) {
     return { success: false, error: e.message };
   }
 }
 
-export async function updateMesero(id: number, nombre: string, activo: number) {
+export async function updateMesero(id: number, nombre: string, activo: number, pin?: string) {
   try {
-    db.prepare(`UPDATE meseros SET nombre = ?, activo = ? WHERE id = ?`).run(nombre, activo, id);
+    let hashedPin: string | undefined;
+    if (pin && pin.trim()) {
+      const validation = await validateNewPin(pin);
+      if (!validation.ok || !validation.pin) {
+        return { success: false, error: validation.error };
+      }
+      hashedPin = await hashPin(validation.pin);
+    }
+
+    const supabase = getSupabaseAdmin();
+    const payload: { nombre: string; activo: number; pin?: string } = { nombre, activo };
+    if (hashedPin) payload.pin = hashedPin;
+
+    const { error } = await supabase
+      .from('meseros')
+      .update(payload)
+      .eq('id', id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
     revalidatePath('/');
     return { success: true };
   } catch (e: any) {
@@ -33,7 +81,16 @@ export async function updateMesero(id: number, nombre: string, activo: number) {
 
 export async function deleteMesero(id: number) {
   try {
-    db.prepare(`DELETE FROM meseros WHERE id = ?`).run(id);
+    const supabase = getSupabaseAdmin();
+    const { error } = await supabase
+      .from('meseros')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
     revalidatePath('/');
     return { success: true };
   } catch (e: any) {

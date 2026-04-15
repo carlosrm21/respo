@@ -2,18 +2,18 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async headers() {
-    const publicOrigin = 'https://restopos.movilcomts.com';
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https:",
+      "img-src 'self' data: https://www.google-analytics.com https://*.google-analytics.com https:",
       "font-src 'self' data:",
-      "connect-src 'self' https:",
+      "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.googletagmanager.com https:",
       "frame-ancestors 'none'",
       "object-src 'none'",
       "base-uri 'self'",
-      "form-action 'self'"
+      "form-action 'self'",
+      "upgrade-insecure-requests"
     ].join('; ');
 
     return [
@@ -29,6 +29,10 @@ const nextConfig: NextConfig = {
             value: 'nosniff'
           },
           {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload'
+          },
+          {
             key: 'X-Frame-Options',
             value: 'DENY'
           },
@@ -41,16 +45,20 @@ const nextConfig: NextConfig = {
             value: 'camera=(), microphone=(), geolocation=()'
           },
           {
-            key: 'Access-Control-Allow-Origin',
-            value: publicOrigin
-          },
-          {
-            key: 'Vary',
-            value: 'Origin'
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin'
           },
           {
             key: 'Cross-Origin-Resource-Policy',
             value: 'same-origin'
+          },
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'off'
+          },
+          {
+            key: 'X-Permitted-Cross-Domain-Policies',
+            value: 'none'
           }
         ]
       }

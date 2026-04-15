@@ -1,49 +1,27 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
+import { getSupabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
 
-// Extend the migration to add product images, turnos, and more
+const REQUIRED_TABLES = ['productos', 'pedidos', 'turnos', 'pedidos_delivery'] as const;
+
 export async function GET() {
   try {
-    // Product images
-    try { db.exec(`ALTER TABLE productos ADD COLUMN imagen_url TEXT`); } catch {}
+    if (!isSupabaseConfigured) {
+      return NextResponse.json({ success: false, error: 'Supabase no configurado.' }, { status: 500 });
+    }
 
-    // Service time tracking on pedidos
-    try { db.exec(`ALTER TABLE pedidos ADD COLUMN fecha_servido DATETIME`); } catch {}
-    try { db.exec(`ALTER TABLE pedidos ADD COLUMN minutos_servicio INTEGER`); } catch {}
+    const supabase = getSupabaseAdmin();
+    const status: Record<string, boolean> = {};
 
-    // Turnos (shift management)
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS turnos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        mesero_id INTEGER NOT NULL,
-        fecha DATE NOT NULL,
-        hora_entrada TEXT NOT NULL,
-        hora_salida TEXT,
-        notas TEXT,
-        estado TEXT DEFAULT 'activo' CHECK(estado IN ('activo', 'terminado')),
-        FOREIGN KEY (mesero_id) REFERENCES meseros(id)
-      );
-    `);
-
-    // Delivery orders (Rappi/iFood webhook)
-    db.exec(`
-      CREATE TABLE IF NOT EXISTS pedidos_delivery (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        plataforma TEXT NOT NULL,
-        external_id TEXT,
-        cliente_nombre TEXT,
-        cliente_direccion TEXT,
-        items_json TEXT NOT NULL,
-        total REAL NOT NULL,
-        estado TEXT DEFAULT 'recibido' CHECK(estado IN ('recibido', 'cocinando', 'en_camino', 'entregado', 'cancelado')),
-        notas TEXT,
-        fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+    for (const table of REQUIRED_TABLES) {
+      const { error } = await supabase.from(table).select('*', { head: true, count: 'exact' });
+      status[table] = !error;
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Migration 2 completed: product images, turnos, delivery orders, minutos_servicio'
+      mode: 'supabase',
+      message: 'Supabase schema check 2 completed.',
+      status
     });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });

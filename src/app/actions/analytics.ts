@@ -1,5 +1,11 @@
 'use server';
-import db from '@/lib/db';
+import {
+  getAlertasMeserosData,
+  getResumenPeriodoData,
+  getTopProductosPeriodoData,
+  getVentasDiariasData,
+  getVentasMeseroPeriodoData
+} from '@/lib/opsBackofficeData';
 
 // ── Period helpers ────────────────────────────────────────────────────────────
 function periodFilter(period: 'hoy' | 'semana' | 'mes' | 'año') {
@@ -14,58 +20,21 @@ function periodFilter(period: 'hoy' | 'semana' | 'mes' | 'año') {
 // ── 1. Resumen de ventas por período ─────────────────────────────────────────
 export async function getResumenPeriodo(period: 'hoy' | 'semana' | 'mes' | 'año' = 'hoy') {
   try {
-    const filter = periodFilter(period);
-    const data = db.prepare(`
-      SELECT
-        COALESCE(SUM(f.total), 0)   AS total_ventas,
-        COUNT(f.id)                 AS total_facturas,
-        COALESCE(AVG(f.total), 0)  AS ticket_promedio,
-        COUNT(DISTINCT p.mesa_id)  AS mesas_atendidas
-      FROM facturas f
-      JOIN pedidos p ON f.pedido_id = p.id
-      WHERE ${filter}
-    `).get();
-    return { success: true, data };
+    return { success: true, data: await getResumenPeriodoData(period) };
   } catch (e: any) { return { success: false, error: e.message }; }
 }
 
 // ── 2. Ventas diarias (últimos 7 días) ────────────────────────────────────────
 export async function getVentasDiarias() {
   try {
-    const data = db.prepare(`
-      SELECT
-        DATE(f.fecha_emision, 'localtime') AS dia,
-        COALESCE(SUM(f.total), 0)          AS total,
-        COUNT(f.id)                        AS facturas
-      FROM facturas f
-      WHERE DATE(f.fecha_emision) >= DATE('now', '-6 days', 'localtime')
-      GROUP BY dia
-      ORDER BY dia ASC
-    `).all();
-    return { success: true, data };
+    return { success: true, data: await getVentasDiariasData() };
   } catch (e: any) { return { success: false, error: e.message }; }
 }
 
 // ── 3. Ventas por mesero con período ──────────────────────────────────────────
 export async function getVentasMeseroPeriodo(period: 'hoy' | 'semana' | 'mes' | 'año' = 'mes') {
   try {
-    const filter = periodFilter(period);
-    const data = db.prepare(`
-      SELECT
-        m.id,
-        m.nombre,
-        m.activo,
-        COALESCE(SUM(f.total), 0) AS total_ventas,
-        COUNT(DISTINCT p.id)      AS num_pedidos,
-        COALESCE(AVG(f.total), 0) AS ticket_promedio,
-        COUNT(DISTINCT DATE(p.fecha_creacion, 'localtime')) AS dias_trabajados
-      FROM meseros m
-      LEFT JOIN pedidos p ON m.id = p.mesero_id
-      LEFT JOIN facturas f ON p.id = f.pedido_id AND ${filter}
-      GROUP BY m.id
-      ORDER BY total_ventas DESC
-    `).all();
-    return { success: true, data };
+    return { success: true, data: await getVentasMeseroPeriodoData(period) };
   } catch (e: any) { return { success: false, error: e.message }; }
 }
 
@@ -73,36 +42,9 @@ export async function getVentasMeseroPeriodo(period: 'hoy' | 'semana' | 'mes' | 
 // Returns meseros activos que no han vendido hoy, y los que no han vendido esta semana
 export async function getAlertasMeseros() {
   try {
-    // Meseros activos sin ventas HOY
-    const sinVentasHoy = db.prepare(`
-      SELECT m.id, m.nombre
-      FROM meseros m
-      WHERE m.activo = 1
-        AND m.id NOT IN (
-          SELECT DISTINCT p.mesero_id FROM pedidos p
-          JOIN facturas f ON p.id = f.pedido_id
-          WHERE DATE(f.fecha_emision, 'localtime') = DATE('now', 'localtime')
-        )
-    `).all() as { id: number; nombre: string }[];
-
-    // Meseros activos sin ventas EN TODA LA SEMANA
-    const sinVentasSemana = db.prepare(`
-      SELECT m.id, m.nombre
-      FROM meseros m
-      WHERE m.activo = 1
-        AND m.id NOT IN (
-          SELECT DISTINCT p.mesero_id FROM pedidos p
-          JOIN facturas f ON p.id = f.pedido_id
-          WHERE DATE(f.fecha_emision) >= DATE('now', '-6 days', 'localtime')
-        )
-    `).all() as { id: number; nombre: string }[];
-
     return {
       success: true,
-      data: {
-        sinVentasHoy,
-        sinVentasSemana,
-      }
+      data: await getAlertasMeserosData()
     };
   } catch (e: any) { return { success: false, error: e.message }; }
 }
@@ -110,30 +52,7 @@ export async function getAlertasMeseros() {
 // ── 5. Top productos por período ──────────────────────────────────────────────
 export async function getTopProductos(period: 'hoy' | 'semana' | 'mes' | 'año' = 'mes') {
   try {
-    const filterPeriod = period === 'hoy'
-      ? `DATE(f.fecha_emision, 'localtime') = DATE('now', 'localtime')`
-      : period === 'semana'
-      ? `DATE(f.fecha_emision) >= DATE('now', '-6 days', 'localtime')`
-      : period === 'mes'
-      ? `strftime('%Y-%m', f.fecha_emision) = strftime('%Y-%m', 'now', 'localtime')`
-      : `strftime('%Y', f.fecha_emision) = strftime('%Y', 'now', 'localtime')`;
-
-    const data = db.prepare(`
-      SELECT
-        prod.nombre,
-        SUM(dp.cantidad)                              AS cantidad_vendida,
-        SUM(dp.cantidad * dp.precio_unitario)         AS ingresos,
-        SUM(dp.cantidad * (dp.precio_unitario - prod.costo)) AS margen
-      FROM detalles_pedido dp
-      JOIN productos prod ON dp.producto_id = prod.id
-      JOIN pedidos ped ON dp.pedido_id = ped.id
-      JOIN facturas f ON ped.id = f.pedido_id
-      WHERE ${filterPeriod}
-      GROUP BY prod.id
-      ORDER BY ingresos DESC
-      LIMIT 8
-    `).all();
-    return { success: true, data };
+    return { success: true, data: await getTopProductosPeriodoData(period) };
   } catch (e: any) { return { success: false, error: e.message }; }
 }
 
@@ -142,7 +61,12 @@ export async function getVentasPorMesero() { return getVentasMeseroPeriodo('mes'
 export async function getMargenesGanancia() { return getTopProductos('mes'); }
 export async function getResumenVentas() {
   try {
-    const data = db.prepare(`SELECT SUM(total) as gran_total, COUNT(*) as total_facturas, AVG(total) as promedio_ticket FROM facturas`).get();
+    const result = await getResumenPeriodoData('año');
+    const data = {
+      gran_total: result.total_ventas,
+      total_facturas: result.total_facturas,
+      promedio_ticket: result.ticket_promedio
+    };
     return { success: true, data };
   } catch { return { success: false }; }
 }

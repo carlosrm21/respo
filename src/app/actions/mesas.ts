@@ -1,12 +1,11 @@
 'use server';
 
-import db from '@/lib/db';
 import { revalidatePath } from 'next/cache';
+import { getMesasData, updateMesaData } from '@/lib/opsData';
 
 export async function getMesas() {
     try {
-        const stmt = db.prepare('SELECT * FROM mesas ORDER BY numero ASC');
-        const rows = stmt.all();
+        const rows = await getMesasData();
         return { success: true, data: rows };
     } catch (error) {
         console.error('Error fetching mesas:', error);
@@ -16,8 +15,7 @@ export async function getMesas() {
 
 export async function updateMesaEstado(id: number, nuevoEstado: string) {
     try {
-        const stmt = db.prepare('UPDATE mesas SET estado = ? WHERE id = ?');
-        stmt.run(nuevoEstado, id);
+        await updateMesaData(id, { estado: nuevoEstado });
         revalidatePath('/'); // Refresh the page to show the new state
         return { success: true };
     } catch (error) {
