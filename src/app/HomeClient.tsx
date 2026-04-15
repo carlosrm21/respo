@@ -29,7 +29,7 @@ import { trackCampaignEvent } from '@/lib/campaignTracking';
 import {
   ChefHat, LogOut, TrendingUp, Users, ShoppingBag,
   Package, Settings, Activity, ExternalLink, Download, Bell, BellOff, Sun, Moon,
-  BarChart3, Wallet, Receipt, CalendarDays, QrCode, Shield, FileText, ArrowUpRight, LayoutDashboard
+  BarChart3, Wallet, Receipt, CalendarDays, QrCode, Shield, FileText, ArrowUpRight, LayoutDashboard, Menu, X
 } from 'lucide-react';
 
 const SECTION_LABELS: Record<string, string> = {
@@ -61,6 +61,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
   const [mesasData, setMesasData] = useState<any[]>(mesas);
   const [currentTime, setCurrentTime] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const [adminNavOpen, setAdminNavOpen] = useState(false);
   const push = usePushNotifications();
   const { theme, toggle: toggleTheme } = useTheme();
 
@@ -72,6 +73,10 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
+
+  useEffect(() => {
+    if (!isMobile) setAdminNavOpen(false);
+  }, [isMobile]);
 
   useEffect(() => {
     getEstadoCaja().then(r => { if (r.success) setCajaAbierta(r.data); });
@@ -241,29 +246,81 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
       { label: 'Libres', count: mesasLibres, color: 'var(--green)' },
       { label: 'Reservadas', count: mesasReservadas, color: 'var(--amber)' }
     ];
+    const handleAdminSectionChange = (nextSection: string) => {
+      setSection(nextSection);
+      if (isMobile) setAdminNavOpen(false);
+    };
 
     return (
       <div className="app-layout">
-        <AdminSidebar activeSection={section} onSectionChange={setSection} onLogout={() => setRole(null)} />
+        {!isMobile ? (
+          <AdminSidebar activeSection={section} onSectionChange={handleAdminSectionChange} onLogout={() => setRole(null)} />
+        ) : (
+          <>
+            {adminNavOpen && (
+              <button
+                type="button"
+                aria-label="Cerrar menú"
+                onClick={() => setAdminNavOpen(false)}
+                style={{ position: 'fixed', inset: 0, background: 'rgba(2,6,23,0.58)', border: 'none', zIndex: 120 }}
+              />
+            )}
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                bottom: 0,
+                zIndex: 121,
+                transform: adminNavOpen ? 'translateX(0)' : 'translateX(-108%)',
+                transition: 'transform 200ms ease'
+              }}
+            >
+              <AdminSidebar
+                activeSection={section}
+                onSectionChange={handleAdminSectionChange}
+                onLogout={() => {
+                  setAdminNavOpen(false);
+                  setRole(null);
+                }}
+              />
+            </div>
+          </>
+        )}
 
         <div className="main-content">
           {/* Top bar */}
-          <header style={{ padding: '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, background: 'var(--bg)' }}>
-            <div>
-              <h1 style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-                {SECTION_LABELS[section] || 'Dashboard'}
-              </h1>
-              <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1, textTransform: 'capitalize' }}>{currentTime}</p>
-            </div>
+          <header style={{ padding: isMobile ? '12px 14px' : '14px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0, background: 'var(--bg)', gap: 10, flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              {isMobile && (
+                <button
+                  type="button"
+                  aria-label={adminNavOpen ? 'Cerrar menú' : 'Abrir menú'}
+                  onClick={() => setAdminNavOpen((prev) => !prev)}
+                  className="btn btn-ghost"
+                  style={{ padding: 7, borderRadius: 8 }}
+                >
+                  {adminNavOpen ? <X size={16} /> : <Menu size={16} />}
+                </button>
+              )}
+              <div>
+                <h1 style={{ fontSize: 16, fontWeight: 600, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                  {SECTION_LABELS[section] || 'Dashboard'}
+                </h1>
+                <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1, textTransform: 'capitalize' }}>{currentTime}</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexWrap: isMobile ? 'wrap' : 'nowrap', width: isMobile ? '100%' : 'auto', justifyContent: isMobile ? 'space-between' : 'flex-end' }}>
               {/* Link to KDS Kitchen */}
-              <a href="/cocina" target="_blank" rel="noopener noreferrer"
-                className="btn btn-outline" style={{ fontSize: 12, gap: 5, padding: '6px 12px' }}>
-                <ChefHat size={13} /> Cocina
-                <ExternalLink size={11} />
-              </a>
+              {!isMobile && (
+                <a href="/cocina" target="_blank" rel="noopener noreferrer"
+                  className="btn btn-outline" style={{ fontSize: 12, gap: 5, padding: '6px 12px' }}>
+                  <ChefHat size={13} /> Cocina
+                  <ExternalLink size={11} />
+                </a>
+              )}
               {/* Push Notifications toggle */}
-              {push.supported && (
+              {!isMobile && push.supported && (
                 <button
                   onClick={push.subscribed ? push.unsubscribe : push.subscribe}
                   disabled={push.loading}
@@ -283,13 +340,18 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
               <button onClick={toggleTheme} className="btn btn-ghost" style={{ padding: '7px', borderRadius: 8 }} title={theme === 'dark' ? 'Modo día' : 'Modo noche'}>
                 {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
               </button>
-              <button className="btn btn-ghost" style={{ padding: '7px' }}><Settings size={16} /></button>
+              {!isMobile && <button className="btn btn-ghost" style={{ padding: '7px' }}><Settings size={16} /></button>}
+              {isMobile && (
+                <button onClick={() => setRole(null)} className="btn btn-ghost" style={{ padding: '7px 10px', gap: 6, fontSize: 12 }}>
+                  <LogOut size={14} /> Salir
+                </button>
+              )}
 
             </div>
           </header>
 
           {/* Content */}
-          <div style={{ flex: 1, overflow: 'auto', padding: 24 }} className="anim-fade-up" key={section}>
+          <div style={{ flex: 1, overflow: 'auto', padding: isMobile ? 14 : 24 }} className="anim-fade-up" key={section}>
             {section === 'dashboard' && (
               <div className="dashboard-shell">
                 <section className="dashboard-hero card">
