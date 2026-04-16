@@ -60,6 +60,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
   const [combos, setCombos] = useState<any[]>([]);
   const [mesasData, setMesasData] = useState<any[]>(mesas);
   const [mesasLoading, setMesasLoading] = useState(mesas.length === 0);
+  const [productosData, setProductosData] = useState<any[]>(productos);
   const [currentTime, setCurrentTime] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [adminNavOpen, setAdminNavOpen] = useState(false);
@@ -102,6 +103,14 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
     // Load mesas from REST API (not server action to avoid SSR hydration issues)
     setMesasLoading(true);
     fetch('/api/mesas').then(r => r.json()).then(r => { if (r.success) setMesasData(r.data); }).finally(() => setMesasLoading(false));
+    // Load products client-side to ensure they always load (SSR may have built with empty DB)
+    if (productos.length === 0) {
+      fetch('/api/mesas') // re-use same pattern — we fetch productos via action
+        .catch(() => {});
+      import('@/app/actions/pedido').then(({ getProductos }) =>
+        getProductos().then(r => { if (r.success && r.data.length > 0) setProductosData(r.data as any[]); })
+      ).catch(() => {});
+    }
     setCurrentTime(new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' }));
 
     const url = new URL(window.location.href);
@@ -174,27 +183,25 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
   const handleOrderSubmit = useCallback(async (mesaId: number, items: any[], mesaNumero?: number) => {
     // Open print window in direct user interaction context to avoid popup blockers.
     const printableMesaNumero = mesaNumero ?? mesaId;
-    const printed = printPrefs.autoPrintComandaMesero
-      ? printKitchenTicketFromTerminal(printableMesaNumero, items)
-      : true;
+    if (printPrefs.autoPrintComandaMesero) {
+      printKitchenTicketFromTerminal(printableMesaNumero, items);
+    }
 
     const result = await submitOrder(mesaId, items);
     if (!result?.success) {
       throw new Error(result?.error || 'No fue posible procesar el pedido.');
     }
 
-    // Immediately update the mesa to 'ocupada' in local state
+    // Immediately update the mesa to 'ocupada' in local state — this makes onOrderSubmit
+    // resolve instantly so WaiterOrder can call onClose() without waiting for push/refresh.
     setMesasData(prev => prev.map((m: any) => m.id === mesaId ? { ...m, estado: 'ocupada' } : m));
-    // Also reload from DB for accuracy
-    await refreshMesas();
-    await sendPushNotification(
+
+    // Fire background operations WITHOUT blocking the UI update
+    refreshMesas().catch(() => {});
+    sendPushNotification(
       `🍽️ Mesa ${mesaNumero ?? mesaId} — Nuevo pedido`,
       `${items.length} producto(s) enviado(s) a cocina`
-    );
-
-    if (printPrefs.autoPrintComandaMesero && !printed) {
-      console.warn('No se pudo abrir la ventana de impresión automática de cocina.');
-    }
+    ).catch(() => {});
   }, [printKitchenTicketFromTerminal, printPrefs.autoPrintComandaMesero, refreshMesas]);
 
   const handleMesaClick = (mesa: any) => {
@@ -709,10 +716,10 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
           </div>
           {/* Full-screen order overlay on mobile */}
           {selectedMesa && (
-            <WaiterOrder
+                      <WaiterOrder
               mesaId={selectedMesa.id}
               mesaNumero={selectedMesa.numero}
-              productos={productos}
+              productos={productosData}
               combos={combos}
               onClose={() => setSelectedMesa(null)}
               onOrderSubmit={(id, items) => handleOrderSubmit(id, items, selectedMesa.numero)}
@@ -765,10 +772,10 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
           {/* RIGHT: Inline order panel */}
           {selectedMesa ? (
             <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              <WaiterOrder
+                            <WaiterOrder
                 mesaId={selectedMesa.id}
                 mesaNumero={selectedMesa.numero}
-                productos={productos}
+                productos={productosData}
                 combos={combos}
                 onClose={() => setSelectedMesa(null)}
                 onOrderSubmit={(id, items) => handleOrderSubmit(id, items, selectedMesa.numero)}
