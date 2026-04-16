@@ -14,6 +14,8 @@ interface TicketConfig {
     mostrarDIAN: boolean;
     mostrarLogo: boolean;
     logoDataUrl: string;
+    autoPrintComandaMesero: boolean;
+    printProfileName: string;
 }
 
 const DEFAULT: TicketConfig = {
@@ -27,6 +29,8 @@ const DEFAULT: TicketConfig = {
     mostrarDIAN: true,
     mostrarLogo: false,
     logoDataUrl: '',
+    autoPrintComandaMesero: true,
+    printProfileName: 'POS / Cocina',
 };
 
 export default function TicketPOSConfig() {
@@ -258,6 +262,41 @@ export default function TicketPOSConfig() {
                                         <span style={{ fontSize: 13, color: 'var(--text-2)' }}>Mostrar logo en la impresión</span>
                                     </div>
                                 )}
+                            </div>
+
+                            <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                                <p style={{ ...labelStyle, marginBottom: 8 }}>Terminal de impresión</p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                    <div>
+                                        <label style={labelStyle}>Nombre de perfil / impresora</label>
+                                        <input
+                                            className="input"
+                                            value={config.printProfileName}
+                                            onChange={e => update('printProfileName', e.target.value)}
+                                            placeholder="POS / Cocina"
+                                            style={inputStyle}
+                                        />
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                        <button onClick={() => update('autoPrintComandaMesero', !config.autoPrintComandaMesero)}
+                                            style={{
+                                                width: 42, height: 24, borderRadius: 12,
+                                                background: config.autoPrintComandaMesero ? 'var(--accent)' : 'var(--border)',
+                                                border: 'none', cursor: 'pointer', position: 'relative',
+                                                transition: 'background 150ms ease', flexShrink: 0,
+                                            }}>
+                                            <span style={{
+                                                position: 'absolute', top: 3, left: config.autoPrintComandaMesero ? 21 : 3,
+                                                width: 18, height: 18, borderRadius: '50%', background: 'white',
+                                                transition: 'left 150ms ease', boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                                            }} />
+                                        </button>
+                                        <span style={{ fontSize: 13, color: 'var(--text-2)' }}>Imprimir comanda automática desde Mesero</span>
+                                    </div>
+                                    <p style={{ fontSize: 11, color: 'var(--text-3)', margin: 0 }}>
+                                        Nota: la instalación física de la impresora se hace en el sistema operativo de cada terminal. Aquí defines el comportamiento de impresión.
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>

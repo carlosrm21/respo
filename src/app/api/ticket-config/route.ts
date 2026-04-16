@@ -16,6 +16,8 @@ const DEFAULT_CONFIG = {
     mostrarDIAN: true,
     mostrarLogo: false,
     logoDataUrl: '',
+    autoPrintComandaMesero: true,
+    printProfileName: 'POS / Cocina',
 };
 
 const TICKET_CONFIG_MAP = {
@@ -29,6 +31,8 @@ const TICKET_CONFIG_MAP = {
     mostrarDIAN: 'ticket_mostrar_dian',
     mostrarLogo: 'ticket_mostrar_logo',
     logoDataUrl: 'ticket_logo_data_url',
+    autoPrintComandaMesero: 'ticket_auto_print_comanda_mesero',
+    printProfileName: 'ticket_print_profile_name',
 } as const;
 
 type TicketConfig = typeof DEFAULT_CONFIG;
@@ -82,6 +86,8 @@ async function getConfigFromSupabase(): Promise<TicketConfig> {
         mostrarDIAN: parseBoolean(byKey.get(TICKET_CONFIG_MAP.mostrarDIAN), DEFAULT_CONFIG.mostrarDIAN),
         mostrarLogo: parseBoolean(byKey.get(TICKET_CONFIG_MAP.mostrarLogo), DEFAULT_CONFIG.mostrarLogo),
         logoDataUrl: normalizeLogoDataUrl(byKey.get(TICKET_CONFIG_MAP.logoDataUrl)),
+        autoPrintComandaMesero: parseBoolean(byKey.get(TICKET_CONFIG_MAP.autoPrintComandaMesero), DEFAULT_CONFIG.autoPrintComandaMesero),
+        printProfileName: byKey.get(TICKET_CONFIG_MAP.printProfileName) || DEFAULT_CONFIG.printProfileName,
     };
 }
 
@@ -114,6 +120,8 @@ async function getConfigFromMaintenanceFallback(): Promise<TicketConfig | null> 
             mostrarDIAN: typeof parsed.mostrarDIAN === 'boolean' ? parsed.mostrarDIAN : DEFAULT_CONFIG.mostrarDIAN,
             mostrarLogo: typeof parsed.mostrarLogo === 'boolean' ? parsed.mostrarLogo : DEFAULT_CONFIG.mostrarLogo,
             logoDataUrl: normalizeLogoDataUrl(parsed.logoDataUrl),
+            autoPrintComandaMesero: typeof parsed.autoPrintComandaMesero === 'boolean' ? parsed.autoPrintComandaMesero : DEFAULT_CONFIG.autoPrintComandaMesero,
+            printProfileName: typeof parsed.printProfileName === 'string' && parsed.printProfileName.trim() ? parsed.printProfileName.trim() : DEFAULT_CONFIG.printProfileName,
         };
     } catch {
         return null;
@@ -133,6 +141,8 @@ async function saveConfigToSupabase(config: TicketConfig) {
         { clave: TICKET_CONFIG_MAP.mostrarDIAN, valor: String(config.mostrarDIAN) },
         { clave: TICKET_CONFIG_MAP.mostrarLogo, valor: String(config.mostrarLogo) },
         { clave: TICKET_CONFIG_MAP.logoDataUrl, valor: config.logoDataUrl },
+        { clave: TICKET_CONFIG_MAP.autoPrintComandaMesero, valor: String(config.autoPrintComandaMesero) },
+        { clave: TICKET_CONFIG_MAP.printProfileName, valor: config.printProfileName },
     ];
 
     const { error } = await supabase
@@ -226,6 +236,8 @@ export async function POST(req: Request) {
             mostrarDIAN: body.mostrarDIAN ?? DEFAULT_CONFIG.mostrarDIAN,
             mostrarLogo: Boolean(body.mostrarLogo),
             logoDataUrl: normalizeLogoDataUrl(body.logoDataUrl),
+            autoPrintComandaMesero: typeof body.autoPrintComandaMesero === 'boolean' ? body.autoPrintComandaMesero : DEFAULT_CONFIG.autoPrintComandaMesero,
+            printProfileName: typeof body.printProfileName === 'string' && body.printProfileName.trim() ? body.printProfileName.trim() : DEFAULT_CONFIG.printProfileName,
         };
 
         if (isSupabaseConfigured) {

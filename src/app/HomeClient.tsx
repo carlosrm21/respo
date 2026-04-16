@@ -62,6 +62,10 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
   const [currentTime, setCurrentTime] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [adminNavOpen, setAdminNavOpen] = useState(false);
+  const [printPrefs, setPrintPrefs] = useState<{ autoPrintComandaMesero: boolean; printProfileName: string }>({
+    autoPrintComandaMesero: true,
+    printProfileName: 'POS / Cocina'
+  });
   const push = usePushNotifications();
   const { theme, toggle: toggleTheme } = useTheme();
 
@@ -81,6 +85,19 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
   useEffect(() => {
     getEstadoCaja().then(r => { if (r.success) setCajaAbierta(r.data); });
     getCombos().then(r => { if (r.success) setCombos(r.data); });
+    fetch('/api/ticket-config')
+      .then(r => r.json())
+      .then(r => {
+        if (r?.success && r?.data) {
+          setPrintPrefs({
+            autoPrintComandaMesero: r.data.autoPrintComandaMesero !== false,
+            printProfileName: typeof r.data.printProfileName === 'string' && r.data.printProfileName.trim()
+              ? r.data.printProfileName.trim()
+              : 'POS / Cocina'
+          });
+        }
+      })
+      .catch(() => {});
     // Load mesas from REST API (not server action to avoid SSR hydration issues)
     fetch('/api/mesas').then(r => r.json()).then(r => { if (r.success) setMesasData(r.data); });
     setCurrentTime(new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' }));
@@ -139,7 +156,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
         <div class="line"></div>
         <table><tbody>${rows}</tbody></table>
         <div class="line"></div>
-        <p class="center" style="font-size:12px">RestoPOS</p>
+        <p class="center" style="font-size:12px">${printPrefs.printProfileName || 'RestoPOS'}</p>
       </body></html>`;
 
     popup.document.write(html);
@@ -150,12 +167,14 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
       popup.close();
     }, 220);
     return true;
-  }, []);
+  }, [printPrefs.printProfileName]);
 
-  const handleOrderSubmit = async (mesaId: number, items: any[], mesaNumero?: number) => {
+  const handleOrderSubmit = useCallback(async (mesaId: number, items: any[], mesaNumero?: number) => {
     // Open print window in direct user interaction context to avoid popup blockers.
     const printableMesaNumero = mesaNumero ?? mesaId;
-    const printed = printKitchenTicketFromTerminal(printableMesaNumero, items);
+    const printed = printPrefs.autoPrintComandaMesero
+      ? printKitchenTicketFromTerminal(printableMesaNumero, items)
+      : true;
 
     const result = await submitOrder(mesaId, items);
     if (!result?.success) {
@@ -171,10 +190,10 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
       `${items.length} producto(s) enviado(s) a cocina`
     );
 
-    if (!printed) {
+    if (printPrefs.autoPrintComandaMesero && !printed) {
       console.warn('No se pudo abrir la ventana de impresión automática de cocina.');
     }
-  };
+  }, [printKitchenTicketFromTerminal, printPrefs.autoPrintComandaMesero, refreshMesas]);
 
   const handleMesaClick = (mesa: any) => {
     if (!cajaAbierta) {
