@@ -108,8 +108,60 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
     return [];
   }, []);
 
+  const printKitchenTicketFromTerminal = useCallback((mesaNumero: number, items: any[]) => {
+    const popup = window.open('', '_blank', 'width=420,height=720');
+    if (!popup) return false;
+
+    const now = new Date().toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
+    const rows = items
+      .map((item: any) => `<tr><td>${item.cantidad}x ${item.nombre}</td></tr>`)
+      .join('');
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Comanda Cocina</title>
+      <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Courier New', monospace; width: 80mm; padding: 10px; color: #000; }
+        .center { text-align: center; }
+        .line { border-top: 1px dashed #000; margin: 8px 0; }
+        h1 { font-size: 18px; text-align: center; margin-bottom: 4px; }
+        .meta { font-size: 12px; line-height: 1.5; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 4px 0; font-size: 16px; font-weight: 700; }
+        @media print { @page { margin: 0; size: 80mm auto; } }
+      </style></head>
+      <body>
+        <h1>COMANDA COCINA</h1>
+        <div class="line"></div>
+        <div class="meta">
+          <p><b>Mesa:</b> ${mesaNumero}</p>
+          <p><b>Fecha:</b> ${now}</p>
+        </div>
+        <div class="line"></div>
+        <table><tbody>${rows}</tbody></table>
+        <div class="line"></div>
+        <p class="center" style="font-size:12px">RestoPOS</p>
+      </body></html>`;
+
+    popup.document.write(html);
+    popup.document.close();
+    popup.focus();
+    setTimeout(() => {
+      popup.print();
+      popup.close();
+    }, 220);
+    return true;
+  }, []);
+
   const handleOrderSubmit = async (mesaId: number, items: any[], mesaNumero?: number) => {
-    await submitOrder(mesaId, items);
+    // Open print window in direct user interaction context to avoid popup blockers.
+    const printableMesaNumero = mesaNumero ?? mesaId;
+    const printed = printKitchenTicketFromTerminal(printableMesaNumero, items);
+
+    const result = await submitOrder(mesaId, items);
+    if (!result?.success) {
+      throw new Error(result?.error || 'No fue posible procesar el pedido.');
+    }
+
     // Immediately update the mesa to 'ocupada' in local state
     setMesasData(prev => prev.map((m: any) => m.id === mesaId ? { ...m, estado: 'ocupada' } : m));
     // Also reload from DB for accuracy
@@ -118,6 +170,10 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
       `🍽️ Mesa ${mesaNumero ?? mesaId} — Nuevo pedido`,
       `${items.length} producto(s) enviado(s) a cocina`
     );
+
+    if (!printed) {
+      console.warn('No se pudo abrir la ventana de impresión automática de cocina.');
+    }
   };
 
   const handleMesaClick = (mesa: any) => {
