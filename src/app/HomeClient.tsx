@@ -597,6 +597,12 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
           <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <div style={{ padding: '14px 14px 6px' }}>
               <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 12 }}>Selecciona una mesa</p>
+              {mesasData.length === 0 ? (
+                <div className="card" style={{ padding: 14, textAlign: 'center' }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8 }}>No se encontraron mesas todavía.</p>
+                  <button onClick={refreshMesas} className="btn btn-outline" style={{ fontSize: 12 }}>Reintentar carga</button>
+                </div>
+              ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
                 {mesasData.map((mesa: any) => {
                   const isOcupada = mesa.estado === 'ocupada';
@@ -619,6 +625,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
                   );
                 })}
               </div>
+              )}
             </div>
           </div>
           {/* Full-screen order overlay on mobile */}
@@ -642,6 +649,12 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
               <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{selectedMesa ? `Mesa ${selectedMesa.numero} seleccionada` : 'Selecciona una mesa para iniciar'}</p>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: 10 }}>
+              {mesasData.length === 0 ? (
+                <div className="card" style={{ padding: 16, textAlign: 'center' }}>
+                  <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8 }}>No se encontraron mesas todavía.</p>
+                  <button onClick={refreshMesas} className="btn btn-outline" style={{ fontSize: 12 }}>Reintentar carga</button>
+                </div>
+              ) : (
               <div style={{ display: 'grid', gridTemplateColumns: selectedMesa ? 'repeat(2, 1fr)' : 'repeat(auto-fill, minmax(140px, 1fr))', gap: 8 }}>
                 {mesasData.map((mesa: any) => {
                   const isSelected = selectedMesa?.id === mesa.id;
@@ -665,6 +678,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
                   );
                 })}
               </div>
+              )}
             </div>
           </div>
           {/* RIGHT: Inline order panel */}

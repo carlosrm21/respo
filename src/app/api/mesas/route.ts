@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getMesasData } from '@/lib/opsData';
+import { getMesasData, seedSupabaseOperationalData } from '@/lib/opsData';
 import { isSupabaseConfigured } from '@/lib/supabaseAdmin';
 
 export async function GET() {
@@ -8,9 +8,16 @@ export async function GET() {
             return NextResponse.json({ success: false, error: 'Supabase no configurado.' }, { status: 500 });
         }
 
-        const mesas = await getMesasData();
+        let mesas = await getMesasData();
+
+        // If the tenant has no seed data yet, provision base operational records.
+        if (!mesas || mesas.length === 0) {
+            await seedSupabaseOperationalData();
+            mesas = await getMesasData();
+        }
+
         return NextResponse.json({ success: true, data: mesas });
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ success: false, error: 'Failed to fetch mesas' }, { status: 500 });
     }
 }
