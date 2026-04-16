@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { getMesasData, seedSupabaseOperationalData } from '@/lib/opsData';
 import { isSupabaseConfigured } from '@/lib/supabaseAdmin';
 
@@ -18,6 +19,7 @@ export async function GET() {
 
         return NextResponse.json({ success: true, data: mesas });
     } catch (error: any) {
-        return NextResponse.json({ success: false, error: 'Failed to fetch mesas' }, { status: 500 });
+        console.error('API Mesas Error:', error);
+        return NextResponse.json({ success: false, error: error?.message || 'Failed to fetch mesas', rootError: String(error) }, { status: 500 });
     }
 }
