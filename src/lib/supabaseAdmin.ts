@@ -1,7 +1,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() || '';
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim() || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\\r\\n/g, '')?.replace(/\r\n/g, '')?.trim() || '';
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.replace(/\\r\\n/g, '')?.replace(/\r\n/g, '')?.trim() || '';
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && serviceRoleKey);
 
