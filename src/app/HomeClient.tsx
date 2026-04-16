@@ -59,6 +59,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
   const [cajaAbierta, setCajaAbierta] = useState<any>(null);
   const [combos, setCombos] = useState<any[]>([]);
   const [mesasData, setMesasData] = useState<any[]>(mesas);
+  const [mesasLoading, setMesasLoading] = useState(mesas.length === 0);
   const [currentTime, setCurrentTime] = useState('');
   const [isMobile, setIsMobile] = useState(false);
   const [adminNavOpen, setAdminNavOpen] = useState(false);
@@ -99,7 +100,8 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
       })
       .catch(() => {});
     // Load mesas from REST API (not server action to avoid SSR hydration issues)
-    fetch('/api/mesas').then(r => r.json()).then(r => { if (r.success) setMesasData(r.data); });
+    setMesasLoading(true);
+    fetch('/api/mesas').then(r => r.json()).then(r => { if (r.success) setMesasData(r.data); }).finally(() => setMesasLoading(false));
     setCurrentTime(new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' }));
 
     const url = new URL(window.location.href);
@@ -672,7 +674,9 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
           <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <div style={{ padding: '14px 14px 6px' }}>
               <p style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 12 }}>Selecciona una mesa</p>
-              {mesasData.length === 0 ? (
+              {mesasLoading ? (
+                <div className="card" style={{ padding: 14, textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>Cargando mesas...</div>
+              ) : mesasData.length === 0 ? (
                 <div className="card" style={{ padding: 14, textAlign: 'center' }}>
                   <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8 }}>No se encontraron mesas todavía.</p>
                   <button onClick={refreshMesas} className="btn btn-outline" style={{ fontSize: 12 }}>Reintentar carga</button>
@@ -724,7 +728,9 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
               <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{selectedMesa ? `Mesa ${selectedMesa.numero} seleccionada` : 'Selecciona una mesa para iniciar'}</p>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: 10 }}>
-              {mesasData.length === 0 ? (
+              {mesasLoading ? (
+                <div className="card" style={{ padding: 16, textAlign: 'center', color: 'var(--text-3)', fontSize: 13 }}>Cargando mesas...</div>
+              ) : mesasData.length === 0 ? (
                 <div className="card" style={{ padding: 16, textAlign: 'center' }}>
                   <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 8 }}>No se encontraron mesas todavía.</p>
                   <button onClick={refreshMesas} className="btn btn-outline" style={{ fontSize: 12 }}>Reintentar carga</button>
