@@ -1,0 +1,52 @@
+.instructivo-hero {
+  background: linear-gradient(135deg, #f0f6ff 0%, #e0e7ff 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 8px;
+}
+.instructivo-card {
+  background: #fff;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 32px 0 #2563eb22;
+  border: 1.5px solid #dbeafe;
+  max-width: 600px;
+  width: 100%;
+  padding: 2.5rem 2rem;
+  margin: 0 auto;
+}
+.instructivo-title {
+  font-size: 2.1rem;
+  font-weight: 700;
+  color: #2563eb;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.instructivo-section {
+  margin-bottom: 2.2rem;
+}
+.instructivo-section h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2563eb;
+  margin-bottom: 0.5rem;
+}
+.instructivo-section ul {
+  margin-left: 1.2rem;
+  color: #334155;
+}
+.instructivo-footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: #2563eb;
+  font-weight: 600;
+}
+.instructivo-note {
+  margin-top: 0.7rem;
+  font-size: 0.85rem;
+  color: #64748b;
+  text-align: center;
+}

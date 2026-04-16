@@ -20,9 +20,12 @@ const opItems = [
   { id: 'delivery', label: 'Delivery', icon: Truck },
 ];
 
+import { HelpCircle } from 'lucide-react';
+
 const configItems = [
   { id: 'fe', label: 'Facturación Elec.', icon: FileText },
   { id: 'ticket', label: 'Ticket POS', icon: Printer },
+  { id: 'instructivo', label: 'Instructivo Impresión', icon: HelpCircle, href: '/instructivo' },
 ];
 
 interface Props {
@@ -105,6 +108,31 @@ export default function AdminSidebar({ activeSection, onSectionChange, onLogout 
           Configuración
         </div>
         {configItems.map(item => {
+          if (item.href) {
+            return (
+              <a
+                key={item.id}
+                href={item.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  width: '100%', display: 'flex', alignItems: 'center', gap: 9,
+                  padding: '8px 10px', borderRadius: 'var(--r-md)',
+                  background: 'var(--surface-2)',
+                  border: '1px solid var(--accent-border)',
+                  color: 'var(--accent-hover)',
+                  cursor: 'pointer', fontSize: 13.5, fontWeight: 500,
+                  textAlign: 'left', transition: 'all 120ms ease', fontFamily: 'inherit',
+                  textDecoration: 'none', marginTop: 4
+                }}
+                title="Ver instructivo de impresión"
+              >
+                <item.icon size={15} strokeWidth={1.7} />
+                {item.label}
+                <span style={{ marginLeft: 'auto', fontSize: 13, opacity: 0.7 }}>↗</span>
+              </a>
+            );
+          }
           const active = activeSection === item.id;
           return (
             <button
