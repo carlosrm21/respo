@@ -48,8 +48,25 @@ const posts = [
 ];
 
 export default function BlogPage() {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    "name": "Blog RestoPOS",
+    "description": "Recursos de gestión, operaciones y facturación electrónica DIAN para restaurantes. Inicia además tus 7 días de prueba.",
+    "url": `${siteUrl}/blog`,
+    "publisher": {
+      "@type": "Organization",
+      "name": "Movilcom Tecnology Solution",
+      "logo": {
+        "@type": "ImageObject",
+        "url": `${siteUrl}/logo.png`
+      }
+    }
+  };
+
   return (
     <main style={{ minHeight: '100vh', background: '#09090b', color: '#f8fafc', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <section style={{ maxWidth: 960, margin: '0 auto', padding: '56px 20px 80px' }}>
         <p style={{ color: '#c084fc', fontWeight: 700, marginBottom: 10 }}>BLOG RESTOPOS</p>
         <h1 style={{ fontSize: 'clamp(30px, 5vw, 48px)', margin: 0, marginBottom: 12 }}>Contenido para crecer tu restaurante</h1>
@@ -58,7 +75,7 @@ export default function BlogPage() {
         </p>
 
         <p style={{ color: '#a1a1aa', maxWidth: 760, lineHeight: 1.7, marginTop: 14 }}>
-          Si buscas implementar un sistema completo, revisa tambien la
+          Pide tu prueba y activa tus <b>7 días gratis</b> de RestoPOS. Revisa también la
           {' '}
           <Link href="/dian-docs" style={{ color: '#a78bfa', textDecoration: 'none' }}>documentacion tecnica DIAN</Link>
           {' '}

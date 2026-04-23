@@ -1,7 +1,34 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { Clock, CheckCircle2, RefreshCw, Flame } from 'lucide-react';
+import { Clock, CheckCircle2, RefreshCw, Flame, Volume2, VolumeX, MonitorPlay } from 'lucide-react';
 import { getKDSPedidos, updateItemEstado } from '@/app/actions/kds';
+
+const playDingDong = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    
+    const playNote = (freq: number, startTime: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, startTime);
+      gain.gain.setValueAtTime(0, startTime);
+      gain.gain.linearRampToValueAtTime(0.8, startTime + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
+      osc.start(startTime);
+      osc.stop(startTime + 0.6);
+    };
+
+    playNote(880, ctx.currentTime);       // A5
+    playNote(659.25, ctx.currentTime + 0.3); // E5
+  } catch(e) {
+    console.error('Audio API falló', e);
+  }
+};
 
 const ESTADO_CONFIG: Record<string, { label: string; color: string; next: 'cocinando' | 'servido' | null }> = {
   pendiente: { label: 'Pendiente', color: 'var(--amber)', next: 'cocinando' },
@@ -12,18 +39,57 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string; next: 'cocin
 export default function KDSPage() {
   const [pedidos, setPedidos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [audioEnabled, setAudioEnabled] = useState(false);
+  const [lastPendingCount, setLastPendingCount] = useState<number>(0);
+  const [wakeLockActive, setWakeLockActive] = useState(false);
+
+  // Solicita que la pantalla no se apague
+  const requestWakeLock = useCallback(async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        const lock = await (navigator as any).wakeLock.request('screen');
+        setWakeLockActive(true);
+        lock.addEventListener('release', () => setWakeLockActive(false));
+      }
+    } catch (err) {
+      console.error('WakeLock falló:', err);
+    }
+  }, []);
 
   const load = useCallback(async () => {
     const res = await getKDSPedidos();
-    if (res.success) setPedidos(res.data);
+    if (res.success) {
+      // Contar ítems 'pendientes' totales
+      const activeCount = res.data.reduce((acc: number, p: any) => acc + p.items.filter((i:any) => i.estado === 'pendiente').length, 0);
+      
+      setPedidos(res.data);
+      
+      setLastPendingCount(prev => {
+        // Disparar sonido si entra al menos 1 ítem nuevo pendiente y el audio está encendido
+        if (activeCount > prev && audioEnabled) {
+          playDingDong();
+        }
+        return activeCount;
+      });
+    }
     setLoading(false);
-  }, []);
+  }, [audioEnabled]);
 
   useEffect(() => {
     load();
     const interval = setInterval(load, 10000); // auto-refresh every 10s
-    return () => clearInterval(interval);
-  }, [load]);
+    requestWakeLock(); // Request wakelock al inicio
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') requestWakeLock();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [load, requestWakeLock]);
 
   const handleEstado = async (detalleId: number, nuevoEstado: 'cocinando' | 'servido') => {
     await updateItemEstado(detalleId, nuevoEstado);
@@ -50,6 +116,20 @@ export default function KDSPage() {
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {wakeLockActive && (
+            <div title="Pantalla activa permanentemente" style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '4px 10px', background: 'rgba(16,185,129,0.1)', color: 'var(--green)', borderRadius: 20, fontSize: 11, fontWeight: 600, border: '1px solid rgba(16,185,129,0.2)' }}>
+              <MonitorPlay size={12} /> Pantalla Activa
+            </div>
+          )}
+          <button 
+            onClick={() => {
+              if (!audioEnabled) playDingDong(); // Probar sonido al activar
+              setAudioEnabled(!audioEnabled);
+            }} 
+            style={{ padding: '8px 10px', background: audioEnabled ? 'rgba(59,130,246,0.1)' : 'var(--surface)', border: audioEnabled ? '1px solid rgba(59,130,246,0.4)' : '1px solid var(--border)', borderRadius: 10, cursor: 'pointer', color: audioEnabled ? 'var(--accent)' : 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600 }}>
+            {audioEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+            {audioEnabled ? 'Sonidos ON' : 'Mutear'}
+          </button>
           <div style={{ fontSize: 12, color: 'var(--text-3)' }}>
             {new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
           </div>

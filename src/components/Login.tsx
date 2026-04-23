@@ -33,6 +33,7 @@ const ROLES = [
 
 export default function Login({ onLogin }: { onLogin: (role: Role) => void }) {
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [nit, setNit] = useState('');
   const [pin, setPin] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,9 +42,9 @@ export default function Login({ onLogin }: { onLogin: (role: Role) => void }) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRole) return;
+    if (!selectedRole || !nit) return;
     setLoading(true);
-    const result = await loginWithPin(selectedRole, pin);
+    const result = await loginWithPin(nit, selectedRole, pin);
     if (result.success) {
       onLogin(selectedRole);
     } else {
@@ -535,6 +536,18 @@ export default function Login({ onLogin }: { onLogin: (role: Role) => void }) {
                   </div>
 
                   <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <div>
+                      <label className="glass-form-label" htmlFor="role-nit">NIT / Código Restaurante</label>
+                      <input
+                        id="role-nit"
+                        type="text"
+                        value={nit}
+                        onChange={e => { setNit(e.target.value); setError(''); }}
+                        placeholder="ej. LAMAMMA"
+                        className="glass-pin-input"
+                        style={{ fontSize: 18, letterSpacing: '2px', textTransform: 'uppercase' }}
+                      />
+                    </div>
                     <div>
                       <label className="glass-form-label" htmlFor="role-pin">PIN de acceso</label>
                       <div style={{ position: 'relative' }}>

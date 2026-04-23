@@ -4,6 +4,7 @@ import HomeClient from '../HomeClient';
 import type { Metadata } from 'next';
 import { getLicenseStatus } from '@/lib/license';
 import { getRestaurantSetting } from '@/lib/opsData';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   robots: {
@@ -13,24 +14,31 @@ export const metadata: Metadata = {
 };
 
 export default async function PosPage() {
-  const mesasResult = await getMesas();
-  const productosResult = await getProductos();
-
-  const mesas = mesasResult.success ? mesasResult.data as any[] : [];
-  const productos = productosResult.success ? productosResult.data as any[] : [];
-
-  let restaurantName = '';
   try {
-    restaurantName = (await getRestaurantSetting('restaurant_name')) || '';
-  } catch (e) {
-    // Si la tabla no existe o hay error, asume vacío
-  }
+    const mesasResult = await getMesas();
+    const productosResult = await getProductos();
 
-  try {
-    await getLicenseStatus();
-  } catch (e) {
-    // Si hay un error de lectura, el bloqueo final ocurre en el login por PIN.
-  }
+    const mesas = mesasResult.success ? mesasResult.data as any[] : [];
+    const productos = productosResult.success ? productosResult.data as any[] : [];
 
-  return <HomeClient mesas={mesas} productos={productos} />;
+    let restaurantName = '';
+    try {
+      restaurantName = (await getRestaurantSetting('restaurant_name')) || '';
+    } catch (e) {
+      // Ignorar
+    }
+
+    try {
+      await getLicenseStatus();
+    } catch (e) {
+      // Login bloqueará
+    }
+
+    return <HomeClient mesas={mesas} productos={productos} />;
+  } catch (err: any) {
+    if (err.message === 'TENANT_MISSING') {
+      redirect('/');
+    }
+    throw err;
+  }
 }

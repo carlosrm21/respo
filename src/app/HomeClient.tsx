@@ -108,7 +108,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
       fetch('/api/mesas') // re-use same pattern — we fetch productos via action
         .catch(() => {});
       import('@/app/actions/pedido').then(({ getProductos }) =>
-        getProductos().then(r => { if (r.success && r.data.length > 0) setProductosData(r.data as any[]); })
+        getProductos().then(r => { if (r.success && r.data && r.data.length > 0) setProductosData(r.data as any[]); })
       ).catch(() => {});
     }
     setCurrentTime(new Date().toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long' }));

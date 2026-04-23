@@ -16,22 +16,22 @@ export const metadata: Metadata = {
     canonical: `${siteUrl}/blog/control-inventario-restaurantes`
   },
   openGraph: {
-    title: 'Control de inventario para restaurantes sin perder margen',
-    description: 'Practicas para reducir mermas, mejorar compras y proteger rentabilidad con tecnologia.',
+    title: 'Control de inventario para restaurantes sin perder margen | 7 Días Gratis',
+    description: 'Practicas para reducir mermas, mejorar compras y proteger rentabilidad con tecnologia. Empieza tu trial de 7 días.',
     url: `${siteUrl}/blog/control-inventario-restaurantes`,
     type: 'article'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Control de inventario para restaurantes',
-    description: 'Guia practica para controlar stock, mermas y margen en restaurantes.'
+    title: 'Control de inventario para restaurantes | 7 Días de Prueba',
+    description: 'Guia practica para controlar stock, mermas y margen en restaurantes. Prueba nuestro software ahora.'
   }
 };
 
 export default function InventoryPostPage() {
   const articleJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': 'BlogPosting',
     headline: 'Control de inventario para restaurantes sin perder margen',
     description: 'Mejora el margen de tu restaurante con control de inventario y procesos claros.',
     datePublished: '2026-04-15',
@@ -43,7 +43,11 @@ export default function InventoryPostPage() {
     },
     publisher: {
       '@type': 'Organization',
-      name: 'RestoPOS'
+      name: 'RestoPOS',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/logo.png`
+      }
     }
   };
 

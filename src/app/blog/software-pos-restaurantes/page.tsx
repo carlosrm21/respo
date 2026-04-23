@@ -32,9 +32,9 @@ export const metadata: Metadata = {
 export default function PosPostPage() {
   const articleJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': 'BlogPosting',
     headline: 'Software POS para restaurantes: que debe tener en 2026',
-    description: 'Checklist tecnico y operativo para elegir un software POS rentable y escalable en Colombia.',
+    description: 'Checklist tecnico y operativo para elegir un software POS rentable y escalable en Colombia. Prueba RestoPOS gratis por 7 días.',
     datePublished: '2026-04-15',
     dateModified: '2026-04-15',
     mainEntityOfPage: `${siteUrl}/blog/software-pos-restaurantes`,
@@ -44,7 +44,11 @@ export default function PosPostPage() {
     },
     publisher: {
       '@type': 'Organization',
-      name: 'RestoPOS'
+      name: 'RestoPOS',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/logo.png`
+      }
     }
   };
 

@@ -7,7 +7,10 @@ const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN || '',
 });
 
-export async function createPaymentPreference(formData?: { restaurantName: string; nit: string; email: string; phone: string }) {
+export async function createPaymentPreference(
+  planId: 'Pro' | 'Pro-plus' | 'Enterprise' = 'Pro-plus',
+  formData?: { restaurantName: string; nit: string; email: string; phone: string }
+) {
   if (!process.env.MP_ACCESS_TOKEN) {
     console.error('El token de MercadoPago no está configurado en las variables de entorno.');
     return {
@@ -15,6 +18,15 @@ export async function createPaymentPreference(formData?: { restaurantName: strin
       error: 'El token de MercadoPago no está configurado en las variables de entorno.',
     };
   }
+
+  // Configuración de precios según el plan
+  const plans = {
+    'Pro': { price: 49900, title: 'Suscripción Plan Pro RestoPOS' },
+    'Pro-plus': { price: 89900, title: 'Suscripción Plan Pro-plus RestoPOS' },
+    'Enterprise': { price: 149900, title: 'Suscripción Plan Enterprise RestoPOS' },
+  };
+
+  const selectedPlan = plans[planId] || plans['Pro-plus'];
 
   try {
     const preference = new Preference(client);
@@ -25,12 +37,12 @@ export async function createPaymentPreference(formData?: { restaurantName: strin
       body: {
         items: [
           {
-            id: 'plan_anual',
-            title: 'Suscripción Plan Anual RestoPOS',
+            id: planId.toLowerCase(),
+            title: selectedPlan.title,
             quantity: 1,
-            unit_price: 850000,
+            unit_price: selectedPlan.price,
             currency_id: 'COP',
-            description: 'Acceso a todas las características del sistema RestoPOS por 1 año',
+            description: `Acceso mensual al ${selectedPlan.title}`,
           },
         ],
         back_urls: {
@@ -41,12 +53,15 @@ export async function createPaymentPreference(formData?: { restaurantName: strin
         auto_return: 'approved',
         statement_descriptor: 'RESTOPOS',
         notification_url: `${baseUrl}/api/webhooks/mercadopago`,
-        metadata: formData ? {
-          restaurant_name: formData.restaurantName,
-          nit: formData.nit,
-          contact_email: formData.email,
-          contact_phone: formData.phone
-        } : undefined,
+        metadata: {
+          plan_id: planId,
+          ...(formData ? {
+            restaurant_name: formData.restaurantName,
+            nit: formData.nit,
+            contact_email: formData.email,
+            contact_phone: formData.phone
+          } : {})
+        },
       },
     });
 

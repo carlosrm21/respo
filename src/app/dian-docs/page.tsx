@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { FileCheck, ShieldCheck, Zap, BookOpen, ExternalLink, Settings, Terminal, CheckCircle2, Info, ArrowLeft, Building2, Key, Code2, Globe } from 'lucide-react';
 import Link from 'next/link';
+import { trackCampaignEvent } from '@/lib/campaignTracking';
 
 export default function DianDocs() {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
@@ -186,7 +187,7 @@ export default function DianDocs() {
             </div>
             <span style={{ fontSize: 18, fontWeight: 800, color: '#f8fafc' }}>Documentación Técnica</span>
           </Link>
-          <Link href="/pos" style={{ padding: '8px 20px', background: '#8b5cf6', color: '#fff', borderRadius: '99px', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
+          <Link href="/pos" onClick={() => trackCampaignEvent('cta_click', { cta_id: 'dian_docs_login' })} style={{ padding: '8px 20px', background: '#8b5cf6', color: '#fff', borderRadius: '99px', textDecoration: 'none', fontWeight: 600, fontSize: 14 }}>
             Probar Sistema
           </Link>
         </div>
@@ -220,7 +221,10 @@ export default function DianDocs() {
               <div 
                 key={p.id} 
                 className={`provider-card ${selectedProvider === p.id ? 'active' : ''}`}
-                onClick={() => setSelectedProvider(p.id)}
+                onClick={() => {
+                  setSelectedProvider(p.id);
+                  trackCampaignEvent('dian_provider_selected', { provider: p.id });
+                }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{p.name}</h3>
@@ -237,7 +241,10 @@ export default function DianDocs() {
                     target="_blank" 
                     rel="noopener noreferrer" 
                     className="btn-link btn-link-external"
-                    onClick={(e) => e.stopPropagation()} // Evita activar el card al hacer clic en el link externo
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      trackCampaignEvent('dian_external_docs_click', { provider: p.id });
+                    }} 
                   >
                     <ExternalLink size={14} /> Sitio Oficial API
                   </a>
@@ -299,6 +306,7 @@ export default function DianDocs() {
                       }}
                       onMouseOver={(e) => e.currentTarget.style.filter = 'brightness(1.1)'}
                       onMouseOut={(e) => e.currentTarget.style.filter = 'brightness(1)'}
+                      onClick={() => trackCampaignEvent('dian_external_docs_click_big', { provider: currentProvider.id })}
                     >
                       <Globe size={18} /> Ir a Documentación Oficial de {currentProvider.name}
                     </a>

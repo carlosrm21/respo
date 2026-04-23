@@ -31,9 +31,9 @@ export const metadata: Metadata = {
 export default function DianPostPage() {
   const articleJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Article',
+    '@type': 'BlogPosting',
     headline: 'Facturacion electronica DIAN para restaurantes: guia rapida',
-    description: 'Guia practica para implementar facturacion electronica DIAN en restaurantes.',
+    description: 'Guia practica para implementar facturacion electronica DIAN en restaurantes usando RestoPOS (Incluye 7 días gratis).',
     datePublished: '2026-04-15',
     dateModified: '2026-04-15',
     mainEntityOfPage: `${siteUrl}/blog/facturacion-electronica-dian-restaurantes`,
@@ -43,7 +43,11 @@ export default function DianPostPage() {
     },
     publisher: {
       '@type': 'Organization',
-      name: 'RestoPOS'
+      name: 'RestoPOS',
+      logo: {
+        '@type': 'ImageObject',
+        url: `${siteUrl}/logo.png`
+      }
     }
   };
 
