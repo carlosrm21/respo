@@ -3,22 +3,23 @@
 import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { getSupabaseAdmin, isSupabaseConfigured } from '@/lib/supabaseAdmin';
 import { hashPin, generateStrongPin } from '@/lib/pinSecurity';
-// Inicializa MercadoPago con el token de acceso
-const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_ACCESS_TOKEN || '',
-});
 
 export async function createPaymentPreference(
   planId: 'Pro' | 'Pro-plus' | 'Enterprise' = 'Pro-plus',
   formData?: { restaurantName: string; nit: string; email: string; phone: string }
 ) {
   if (!process.env.MP_ACCESS_TOKEN) {
-    console.error('El token de MercadoPago no está configurado en las variables de entorno.');
+    console.error('El token de MercadoPago no está configurado.');
     return {
       success: false,
-      error: 'El token de MercadoPago no está configurado en las variables de entorno.',
+      error: 'El token de MercadoPago no está configurado.',
     };
   }
+
+  // Inicializar cliente MercadoPago solo cuando se usa
+  const client = new MercadoPagoConfig({
+    accessToken: process.env.MP_ACCESS_TOKEN,
+  });
 
   // Configuración de precios según el plan
   const plans = {
