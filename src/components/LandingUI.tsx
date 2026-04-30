@@ -4,7 +4,6 @@ import { ChefHat, ArrowRight, LayoutGrid, Users, UtensilsCrossed, Sparkles, Chec
 import Link from 'next/link';
 import Image from 'next/image';
 import { appendTrackingToUrl, captureCampaignTracking, trackCampaignEvent } from '@/lib/campaignTracking';
-import { createPaymentPreference, createTrialTenant } from '@/app/actions/payment';
 
 export default function LandingUI() {
   const PAYMENT_URL = 'https://mpago.li/2cBBftf';
@@ -73,16 +72,21 @@ export default function LandingUI() {
     });
     
     try {
-      const response = await createTrialTenant(selectedPlan, formData);
-      if (response.success && response.initPoint) {
-        window.location.href = appendTrackingToUrl(response.initPoint);
+      const res = await fetch('/api/trial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, planId: selectedPlan }),
+      });
+      const response = await res.json();
+      if (response.success && response.redirectTo) {
+        window.location.href = appendTrackingToUrl(response.redirectTo);
       } else {
-        alert(response.error || 'Ocurrió un error temporal al iniciar el proceso de registro.');
+        alert(response.error || 'Ocurrió un error al registrar tu restaurante.');
         setIsProcessingPayment(false);
       }
     } catch (err) {
       console.error(err);
-      alert('Ocurrió un error de red al intentar procesar el registro.');
+      alert('Error de red al procesar el registro. Inténtalo de nuevo.');
       setIsProcessingPayment(false);
     }
   };
