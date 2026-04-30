@@ -15,11 +15,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Supabase no configurado.' }, { status: 500 });
     }
 
+    const body = await req.json();
+    const plataforma = req.headers.get('x-platform') || 'rappi';
     const restaurante_id = req.nextUrl.searchParams.get('tenant_id');
 
     if (!restaurante_id) {
       return NextResponse.json({ error: 'Falta restaurante_id en la URL del Webhook.' }, { status: 400 });
     }
+
+    const itemsJson = JSON.stringify(body.items || []);
+    const total = body.total || body.items?.reduce((s: number, i: any) => s + (i.precio * i.cantidad), 0) || 0;
 
     await createDeliveryOrderData({
       restaurante_id,
@@ -39,6 +44,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }
+
+export async function GET() {
+  try {
+    if (!isSupabaseConfigured) {
+      return NextResponse.json({ error: 'Supabase no configurado.' }, { status: 500 });
+    }
 
     const cookieStore = await cookies();
     const restaurante_id = cookieStore.get('tenant_id')?.value;
