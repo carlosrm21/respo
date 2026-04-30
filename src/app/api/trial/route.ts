@@ -23,7 +23,21 @@ export async function POST(req: NextRequest) {
     const nitClean = String(nit).trim();
     const name = String(restaurantName).trim();
 
-    // 1. Verificar si ya existe
+    // 1. Verificar si este NIT ya tuvo un trial (incluso si la cuenta fue eliminada)
+    const { data: nitUsado } = await supabase
+      .from('trial_nits_usados')
+      .select('nit')
+      .eq('nit', nitClean)
+      .maybeSingle();
+
+    if (nitUsado) {
+      return NextResponse.json({
+        success: false,
+        error: 'Este NIT/Cédula ya utilizó el período de prueba gratuita. Para continuar usando RestoPOS debes adquirir un plan.'
+      }, { status: 409 });
+    }
+
+    // 2. Verificar si ya existe una cuenta activa con este NIT
     const { data: existing } = await supabase
       .from('restaurantes')
       .select('id')

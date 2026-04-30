@@ -26,6 +26,7 @@ import { getCombos } from './actions/combos';
 import { usePushNotifications, sendPushNotification } from '@/hooks/usePushNotifications';
 import { useTheme } from '@/hooks/useTheme';
 import { trackCampaignEvent } from '@/lib/campaignTracking';
+import LicenseBanner from '@/components/LicenseBanner';
 import {
   ChefHat, LogOut, TrendingUp, Users, ShoppingBag,
   Package, Settings, Activity, ExternalLink, Download, Bell, BellOff, Sun, Moon,
@@ -224,10 +225,14 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
 
   if (!role) return <Login onLogin={r => setRole(r as any)} />;
 
+  /* ── LICENSE BANNER (visible en todos los roles) ── */
+  const licenseBannerEl = <LicenseBanner />;
+
   /* ── KITCHEN (KDS) ── */
   if (role === 'kitchen') {
     return (
       <div style={{ background: 'var(--bg)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        {licenseBannerEl}
         <header style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div className="brand-mark brand-mark-sm">
@@ -337,6 +342,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
 
     return (
       <div className="app-layout">
+        {licenseBannerEl}
         {!isMobile ? (
           <AdminSidebar activeSection={section} onSectionChange={handleAdminSectionChange} onLogout={() => setRole(null)} />
         ) : (
@@ -651,6 +657,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
   /* ── WAITER ── */
   return (
     <div style={{ background: 'var(--bg)', height: '100vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {licenseBannerEl}
       {/* Navbar */}
       <header style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
