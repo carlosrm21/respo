@@ -2,13 +2,30 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { getPublicMenuData } from '@/lib/opsData';
 
-export const dynamic = 'force-dynamic';
-export const metadata: Metadata = {
-  robots: {
-    index: false,
-    follow: false
-  }
-};
+import Image from 'next/image';
+
+export const revalidate = 60;
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const data = await getPublicMenuData(parseInt(id)).catch(() => null);
+  
+  if (!data) return { title: 'Menú no encontrado | RestoPOS' };
+
+  return {
+    title: `Menú Digital - ${data.mesa.restaurante_nombre} | RestoPOS`,
+    description: `Descubre los deliciosos platillos de ${data.mesa.restaurante_nombre}. Pide online fácil y rápido.`,
+    robots: {
+      index: true,
+      follow: true
+    },
+    openGraph: {
+      title: `Menú de ${data.mesa.restaurante_nombre}`,
+      description: `Ordena desde la Mesa ${data.mesa.numero}.`,
+      type: 'website'
+    }
+  };
+}
 
 export default async function MenuPublicoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -53,7 +70,9 @@ export default async function MenuPublicoPage({ params }: { params: Promise<{ id
               {grupos[cat].map((p: any) => (
                 <div key={p.id} style={{ display: 'flex', gap: 14, padding: '14px 16px', background: '#18181b', border: '1px solid #27272a', borderRadius: 14, alignItems: 'center' }}>
                   {p.imagen_url ? (
-                    <img src={p.imagen_url} alt={p.nombre} style={{ width: 60, height: 60, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />
+                    <div style={{ width: 60, height: 60, position: 'relative', flexShrink: 0 }}>
+                      <Image src={p.imagen_url} alt={p.nombre} fill style={{ borderRadius: 10, objectFit: 'cover' }} sizes="60px" />
+                    </div>
                   ) : (
                     <div style={{ width: 60, height: 60, borderRadius: 10, background: '#27272a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, flexShrink: 0 }}>
                       {cat.includes('Bebida') ? '🥤' : cat.includes('Postre') ? '🍰' : cat.includes('Entrada') ? '🥗' : cat.includes('Carne') ? '🥩' : '🍽️'}
@@ -83,6 +102,37 @@ export default async function MenuPublicoPage({ params }: { params: Promise<{ id
           Escanea el QR en tu mesa o pide a tu mesero · Precios incluyen impuestos
         </div>
       </div>
+      
+      {/* Schema Markup for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Restaurant",
+            "name": mesa.restaurante_nombre,
+            "hasMenu": `https://restopos.movilcomts.com/menu/${mesa.id}`,
+            "servesCuisine": "Variada",
+            "menu": {
+              "@type": "Menu",
+              "hasMenuSection": Object.keys(grupos).map(cat => ({
+                "@type": "MenuSection",
+                "name": cat,
+                "hasMenuItem": grupos[cat].map((p: any) => ({
+                  "@type": "MenuItem",
+                  "name": p.nombre,
+                  "description": p.descripcion || "",
+                  "offers": {
+                    "@type": "Offer",
+                    "price": p.precio,
+                    "priceCurrency": "COP"
+                  }
+                }))
+              }))
+            }
+          })
+        }}
+      />
     </div>
   );
 }

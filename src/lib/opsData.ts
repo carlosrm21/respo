@@ -508,25 +508,43 @@ export async function cerrarCajaData(id: number, montoReal: number) {
 }
 
 export async function getPublicMenuData(mesaId: number) {
-  // OJO: En un modelo multi-tenant real, getPublicMenuData debe saber el RESTAURANTE ID
-  // porque el cliente no tiene cookie si entra por QR publico.
-  // Pero asumiremos que recibe un JWT firmado, o pasara el tenant.
-  const tenantId = await requireTenant();
   const supabase = requireSupabase();
+  
   const { data: mesa, error: mesaError } = await supabase
     .from('mesas')
-    .select('*')
-    .eq('restaurante_id', tenantId)
+    .select('*, restaurantes(nombre)')
     .eq('id', mesaId)
     .maybeSingle();
 
   if (mesaError) throw new Error(mesaError.message);
   if (!mesa) return null;
 
-  const productos = await getProductosData({ onlyAvailable: true });
-  const categorias = await getCategoriasData();
+  const tenantId = mesa.restaurante_id;
 
-  return { mesa, productos, categorias };
+  const { data: productosData } = await supabase
+    .from('productos')
+    .select('id, nombre, precio, descripcion, categoria_id, categorias(nombre)')
+    .eq('restaurante_id', tenantId)
+    .eq('disponible', 1)
+    .order('nombre', { ascending: true });
+
+  const { data: categorias } = await supabase
+    .from('categorias')
+    .select('*')
+    .eq('restaurante_id', tenantId)
+    .order('nombre', { ascending: true });
+
+  const productos = (productosData || []).map((product: any) => ({
+    ...product,
+    precio: asNumber(product.precio),
+    categoria_nombre: one(product.categorias)?.nombre || null
+  }));
+
+  return { 
+    mesa: { ...mesa, restaurante_nombre: one(mesa.restaurantes)?.nombre || 'Restaurante' }, 
+    productos, 
+    categorias: categorias || []
+  };
 }
 
 export async function getCombosData() {

@@ -2,8 +2,9 @@
 import { useEffect, useState } from 'react';
 import { ChefHat, ArrowRight, LayoutGrid, Users, UtensilsCrossed, Sparkles, CheckCircle2, ShieldCheck, Zap, Smartphone, Receipt, Package, Star, MessageCircle, ChevronDown, Quote, Loader2, X, Menu, Download, Cloud, Globe } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { appendTrackingToUrl, captureCampaignTracking, trackCampaignEvent } from '@/lib/campaignTracking';
-import { createPaymentPreference } from '@/app/actions/payment';
+import { createPaymentPreference, createTrialTenant } from '@/app/actions/payment';
 
 export default function LandingUI() {
   const PAYMENT_URL = 'https://mpago.li/2cBBftf';
@@ -72,16 +73,16 @@ export default function LandingUI() {
     });
     
     try {
-      const response = await createPaymentPreference(selectedPlan, formData);
+      const response = await createTrialTenant(selectedPlan, formData);
       if (response.success && response.initPoint) {
         window.location.href = appendTrackingToUrl(response.initPoint);
       } else {
-        alert(response.error || 'Ocurrió un error temporal al iniciar el proceso de registro y pago.');
+        alert(response.error || 'Ocurrió un error temporal al iniciar el proceso de registro.');
         setIsProcessingPayment(false);
       }
     } catch (err) {
       console.error(err);
-      alert('Ocurrió un error de red al intentar procesar el pago.');
+      alert('Ocurrió un error de red al intentar procesar el registro.');
       setIsProcessingPayment(false);
     }
   };
@@ -147,10 +148,10 @@ export default function LandingUI() {
         "url": "https://restopos.movilcomts.com",
         "offers": {
           "@type": "Offer",
-          "price": "850000",
+          "price": "49900",
           "priceCurrency": "COP",
           "priceValidUntil": "2027-12-31",
-          "description": "Incluye 7 días de prueba gratis"
+          "description": "Incluye 14 días de prueba gratis. Suscripción mensual desde $49.900 COP."
         },
         "aggregateRating": {
           "@type": "AggregateRating",
@@ -390,8 +391,8 @@ export default function LandingUI() {
       <nav>
         <div className="nav-wrapper">
           <div className="nav-left">
-            <div style={{ width: 32, height: 32 }}>
-              <img src="/logo.png" alt="Logo RestoPOS" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <div style={{ width: 32, height: 32, position: 'relative' }}>
+              <Image src="/logo.png" alt="Logo RestoPOS" fill style={{ objectFit: 'contain' }} priority />
             </div>
             <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', color: '#f8fafc' }}>RESTO POS</span>
           </div>
@@ -455,7 +456,7 @@ export default function LandingUI() {
         </div>
         <div className="hero-visual">
           <div className="hero-mockup-wrapper">
-            <img src="/preview-analytics.png" alt="RestoPOS Analytics Dashboard" />
+            <Image src="/preview-analytics.png" alt="RestoPOS Analytics Dashboard" width={800} height={600} style={{ width: '100%', height: 'auto', display: 'block' }} priority />
           </div>
         </div>
       </header>
@@ -554,10 +555,11 @@ export default function LandingUI() {
           </div>
           
           <div className="product-visual">
-            <img 
+            <Image 
               src={activeTab === 0 ? "/preview-waiter.png" : activeTab === 1 ? "/preview-kds.png" : activeTab === 2 ? "/preview-dashboard.png" : "/preview-analytics.png"} 
               alt="Plataforma RestoPOS" 
-              style={{ transition: 'opacity 0.3s' }}
+              width={800} height={600}
+              style={{ transition: 'opacity 0.3s', width: '100%', height: 'auto' }}
             />
           </div>
         </div>
@@ -730,8 +732,8 @@ export default function LandingUI() {
         <div className="footer-grid">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <div style={{ width: 32, height: 32 }}>
-                <img src="/logo.png" alt="Logo RestoPOS" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <div style={{ width: 32, height: 32, position: 'relative' }}>
+                <Image src="/logo.png" alt="Logo RestoPOS" fill style={{ objectFit: 'contain' }} />
               </div>
               <span style={{ fontSize: 20, fontWeight: 800, color: '#f8fafc' }}>RESTO POS</span>
             </div>
@@ -782,7 +784,9 @@ export default function LandingUI() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-                    <img src="/logo.png" alt="RestoPOS" style={{ width: 40, height: 40, objectFit: 'contain' }} />
+                    <div style={{ width: 40, height: 40, position: 'relative' }}>
+                      <Image src="/logo.png" alt="RestoPOS" fill style={{ objectFit: 'contain' }} />
+                    </div>
                     <div style={{ fontSize: 12, color: '#8b5cf6', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Configuración Segura</div>
                   </div>
                   <h3 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>Crea tu Tenant</h3>

@@ -5,8 +5,8 @@ import Script from "next/script";
 import CampaignTracker from '@/components/CampaignTracker';
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-display" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans", display: 'swap', preload: true });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: 'swap', preload: true });
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://restopos.movilcomts.com';
 const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
@@ -25,10 +25,10 @@ export const metadata: Metadata = {
     canonical: '/'
   },
   title: {
-    default: 'RestoPOS | Software POS para Restaurantes en Colombia',
-    template: '%s | RestoPOS'
+    default: 'Sistema POS para Restaurantes | RestoPOS MOVILCOMTS',
+    template: '%s | RestoPOS MOVILCOMTS'
   },
-  description: 'Software POS para restaurantes con facturacion electronica DIAN, control de mesas, inventario, cocina KDS y analiticas en tiempo real.',
+  description: 'Aumenta tus ventas y controla tu inventario con RestoPOS. Sistema POS intuitivo en Colombia con KDS, mapas de mesas y Facturación Electrónica DIAN integrada.',
   applicationName: 'RestoPOS',
   keywords: [
     'software POS restaurantes',
