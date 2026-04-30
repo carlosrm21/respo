@@ -869,6 +869,7 @@ export async function getAuditLogData(limit = 100) {
 }
 
 export async function createDeliveryOrderData(payload: {
+  restaurante_id: string;
   plataforma: string;
   external_id: string | null;
   cliente_nombre: string;
@@ -882,11 +883,12 @@ export async function createDeliveryOrderData(payload: {
   if (error) throw new Error(error.message);
 }
 
-export async function listDeliveryOrdersData() {
+export async function listDeliveryOrdersData(restaurante_id: string) {
   const supabase = requireSupabase();
   const { data, error } = await supabase
     .from('pedidos_delivery')
     .select('*')
+    .eq('restaurante_id', restaurante_id)
     .order('fecha_creacion', { ascending: false })
     .limit(50);
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { addAuditLog } from '@/app/actions/auditlog';
 import { isSupabaseConfigured } from '@/lib/supabaseAdmin';
 import {
@@ -14,13 +15,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Supabase no configurado.' }, { status: 500 });
     }
 
-    const body = await req.json();
-    const plataforma = req.headers.get('x-platform') || 'rappi';
+    const restaurante_id = req.nextUrl.searchParams.get('tenant_id');
 
-    const itemsJson = JSON.stringify(body.items || []);
-    const total = body.total || body.items?.reduce((s: number, i: any) => s + (i.precio * i.cantidad), 0) || 0;
+    if (!restaurante_id) {
+      return NextResponse.json({ error: 'Falta restaurante_id en la URL del Webhook.' }, { status: 400 });
+    }
 
     await createDeliveryOrderData({
+      restaurante_id,
       plataforma,
       external_id: body.order_id || null,
       cliente_nombre: body.cliente || 'Cliente delivery',
@@ -38,13 +40,14 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
-  try {
-    if (!isSupabaseConfigured) {
-      return NextResponse.json({ error: 'Supabase no configurado.' }, { status: 500 });
+    const cookieStore = await cookies();
+    const restaurante_id = cookieStore.get('tenant_id')?.value;
+
+    if (!restaurante_id) {
+      return NextResponse.json({ error: 'Sesión no válida o falta tenant_id.' }, { status: 401 });
     }
 
-    const data = await listDeliveryOrdersData();
+    const data = await listDeliveryOrdersData(restaurante_id);
     return NextResponse.json({ success: true, data });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
