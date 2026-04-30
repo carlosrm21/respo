@@ -9,10 +9,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { restaurantName, nit, email, phone, planId = 'Pro-plus' } = body;
+    const { restaurantName, nit, email, phone, planId = 'Pro-plus', adminPin } = body;
 
     if (!nit || !restaurantName) {
       return NextResponse.json({ success: false, error: 'Nombre y NIT son obligatorios.' }, { status: 400 });
+    }
+
+    if (!adminPin || String(adminPin).trim().length !== 4 || !/^\d{4}$/.test(String(adminPin).trim())) {
+      return NextResponse.json({ success: false, error: 'El PIN de administrador debe ser de exactamente 4 dígitos numéricos.' }, { status: 400 });
     }
 
     const supabase = getSupabaseAdmin();
@@ -44,14 +48,14 @@ export async function POST(req: NextRequest) {
 
     const tenantId = newTenant.id;
 
-    // 3. Generar PINs seguros
+    // 3. Generar PINs: admin usa el elegido por el usuario, los demás son aleatorios
     const usedPins = new Set<string>();
-    const adminPin = generateStrongPin(usedPins);
+    usedPins.add(String(adminPin)); // Reservar el PIN del admin
     const waiterPin = generateStrongPin(usedPins);
     const kitchenPin = generateStrongPin(usedPins);
 
     const [adminHash, waiterHash, kitchenHash] = await Promise.all([
-      hashPin(adminPin),
+      hashPin(String(adminPin)),
       hashPin(waiterPin),
       hashPin(kitchenPin),
     ]);

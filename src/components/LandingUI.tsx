@@ -14,7 +14,7 @@ export default function LandingUI() {
   const [navOpen, setNavOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState<'Pro' | 'Pro-plus' | 'Enterprise'>('Pro-plus');
-  const [formData, setFormData] = useState({ restaurantName: '', nit: '', email: '', phone: '' });
+  const [formData, setFormData] = useState({ restaurantName: '', nit: '', email: '', phone: '', adminPin: '' });
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
@@ -79,6 +79,9 @@ export default function LandingUI() {
       });
       const response = await res.json();
       if (response.success && response.redirectTo) {
+        // Guardar NIT y PIN en sessionStorage para autocompletar el login
+        sessionStorage.setItem('trial_nit', formData.nit);
+        sessionStorage.setItem('trial_pin', formData.adminPin);
         window.location.href = appendTrackingToUrl(response.redirectTo);
       } else {
         alert(response.error || 'Ocurrió un error al registrar tu restaurante.');
@@ -818,13 +821,31 @@ export default function LandingUI() {
                 <input required type="email" className="modal-input" placeholder="gerencia@restaurante.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} disabled={isProcessingPayment} />
               </div>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 16 }}>
                 <label style={{ fontSize: 13, fontWeight: 600, color: '#cbd5e1' }}>Teléfono Móvil (WhatsApp)</label>
                 <input required type="tel" className="modal-input" placeholder="+57 300 000 0000" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} disabled={isProcessingPayment} />
               </div>
 
-              <button type="submit" disabled={isProcessingPayment} className="btn-primary" style={{ width: '100%', padding: '16px', fontSize: 16 }}>
-                {isProcessingPayment ? <Loader2 size={20} className="animate-spin" /> : <><ShieldCheck size={18} style={{ marginRight: 8 }} /> Procesar Pago Seguro (Mercado Pago)</>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 24 }}>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#cbd5e1' }}>PIN de Administrador (4 dígitos)</label>
+                <input
+                  required
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]{4}"
+                  maxLength={4}
+                  className="modal-input"
+                  placeholder="••••"
+                  value={formData.adminPin}
+                  onChange={e => setFormData({ ...formData, adminPin: e.target.value.replace(/\D/g, '').slice(0, 4) })}
+                  disabled={isProcessingPayment}
+                  style={{ letterSpacing: '0.5em', fontSize: 22, textAlign: 'center' }}
+                />
+                <span style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>Este PIN te servirá para ingresar como Administrador en los 14 días de prueba.</span>
+              </div>
+
+              <button type="submit" disabled={isProcessingPayment || formData.adminPin.length < 4} className="btn-primary" style={{ width: '100%', padding: '16px', fontSize: 16 }}>
+                {isProcessingPayment ? <Loader2 size={20} className="animate-spin" /> : <><ShieldCheck size={18} style={{ marginRight: 8 }} /> Iniciar Prueba Gratuita de 14 Días</>}
               </button>
               
               <p style={{ textAlign: 'center', color: '#64748b', fontSize: 12, marginTop: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
