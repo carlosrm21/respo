@@ -23,6 +23,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Falta restaurante_id en la URL del Webhook.' }, { status: 400 });
     }
 
+    console.log('API Webhook - Recibiendo para restaurante:', restaurante_id);
+
     const itemsJson = JSON.stringify(body.items || []);
     const total = body.total || body.items?.reduce((s: number, i: any) => s + (i.precio * i.cantidad), 0) || 0;
 
