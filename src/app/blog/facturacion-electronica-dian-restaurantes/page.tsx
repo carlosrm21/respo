@@ -61,20 +61,34 @@ export default function DianPostPage() {
           La facturacion electronica no es solo cumplimiento: tambien mejora control, trazabilidad y cierre diario cuando esta integrada al POS.
         </p>
 
-        <h2>1. Define proveedor y esquema de integracion</h2>
-        <p>Evalua soporte, estabilidad de API y tiempos de respuesta. Evita integraciones improvisadas que obliguen reprocesos manuales.</p>
+        <h2>1. Marco Legal Obligatorio (Resolución 000042 de 2020)</h2>
+        <p>En Colombia, la Resolución 042 de 2020 establece el marco técnico y legal para la facturación electrónica. Para restaurantes, esto implica reportar correctamente el <strong>Impuesto Nacional al Consumo (INC) del 8%</strong> (Art. 512-1 E.T.) o el IVA según corresponda.</p>
 
-        <h2>2. Estandariza datos fiscales</h2>
-        <p>Antes de salir a produccion, valida NIT, resolucion y parametros de numeracion. Los errores de datos suelen generar la mayoria de rechazos.</p>
+        <h2>2. Actores en el Ecosistema Electrónico</h2>
+        <p>RestoPOS actúa como un <strong>Software POS intermediario</strong>. Para cumplir legalmente, el restaurante debe contratar un <strong>Proveedor Tecnológico Habilitado (PTH)</strong> (como Siigo, Alegra o Factus). RestoPOS se conecta a la API de su PTH para transmitir los datos de venta de forma automática.</p>
 
-        <h2>3. Integra facturacion al cierre de venta</h2>
-        <p>El mejor resultado se logra cuando cobro y emision se ejecutan en un mismo flujo, con trazabilidad desde pedido hasta factura.</p>
+        <h2>3. Datos Mínimos del Emisor (Restaurante)</h2>
+        <p>Cada factura electrónica emitida a través de RestoPOS debe incluir obligatoriamente:</p>
+        <ul style={{ color: '#d1d1db', marginLeft: '20px', marginBottom: '20px' }}>
+          <li>NIT con dígito de verificación y Razón Social exacta según RUT.</li>
+          <li>Dirección física del establecimiento y municipio/departamento.</li>
+          <li>Código de actividad económica <strong>CIIU 5611</strong> (Restaurantes).</li>
+          <li>Correo electrónico registrado ante la DIAN para recepción de facturas.</li>
+          <li>Prefijo y rango de numeración autorizado vigente.</li>
+        </ul>
 
-        <h2>4. Pruebas y monitoreo</h2>
-        <p>Monitorea rechazos, latencia de emision y volumen por hora. Define alertas para evitar acumulacion de pendientes en hora pico.</p>
+        <h2>4. Requisitos del Receptor (Cliente)</h2>
+        <p>Para facturas superiores a 5 UVT (aprox. $247.000 COP en 2024) o cuando el cliente lo solicite, se deben capturar:</p>
+        <ul style={{ color: '#d1d1db', marginLeft: '20px', marginBottom: '20px' }}>
+          <li>Tipo de documento (CC, NIT, CE) y número.</li>
+          <li>Nombre o razón social.</li>
+          <li>Correo electrónico para envío del XML y PDF.</li>
+        </ul>
 
-        <h2>5. Documentacion y respaldo legal</h2>
-        <p>Conserva evidencia de pruebas, resoluciones y parametrizacion fiscal para auditorias. Esto acelera soporte y reduce riesgo operativo.</p>
+        <div style={{ background: 'rgba(167,139,250,0.1)', border: '1px solid rgba(167,139,250,0.3)', padding: '20px', borderRadius: '12px', marginTop: '30px' }}>
+          <h3 style={{ marginTop: 0, color: '#a78bfa' }}>⚠️ Importante: Conservación de Datos</h3>
+          <p style={{ marginBottom: 0, fontSize: '0.95em' }}>Según el <strong>Art. 632 del Estatuto Tributario</strong>, los obligados a facturar deben conservar los documentos y soportes por un periodo de <strong>5 años</strong>. RestoPOS mantiene un log histórico de todas las transmisiones para su respaldo ante auditorías.</p>
+        </div>
 
         <p>
           Consulta oficial:

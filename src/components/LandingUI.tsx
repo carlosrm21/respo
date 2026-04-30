@@ -616,6 +616,62 @@ export default function LandingUI() {
         </div>
       </section>
 
+      {/* ── COMPLIANCE & LEGAL ── */}
+      <section id="compliance" style={{ padding: '100px 24px', background: '#050505', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 60, alignItems: 'center' }}>
+          <div>
+            <h2 className="section-title" style={{ textAlign: 'left', marginBottom: 24 }}>SaaS 100% legal y alineado con la DIAN</h2>
+            <p style={{ color: '#94a3b8', fontSize: 16, lineHeight: 1.7, marginBottom: 32 }}>
+              RestoPOS ha sido diseñado bajo los estándares de la <strong>Resolución 000042 de 2020</strong>. Nuestra plataforma actúa como el puente perfecto entre tu operación diaria y el cumplimiento fiscal colombiano.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {[
+                { t: 'Reporte INC (8%) Automático', d: 'Cálculo exacto del Impuesto Nacional al Consumo en cada pedido según el Art. 512-1 del Estatuto Tributario.' },
+                { t: 'Conservación Legal (5 años)', d: 'Resguardamos tus logs de transmisión y facturas según el Art. 632 E.T. para tu tranquilidad ante auditorías.' },
+                { t: 'Integración con PTHs', d: 'Conéctate con Siigo, Alegra, Factus o cualquier Proveedor Tecnológico Habilitado en minutos.' }
+              ].map((item, i) => (
+                <div key={i} style={{ display: 'flex', gap: 16 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <CheckCircle2 size={16} color="#10b981" />
+                  </div>
+                  <div>
+                    <h4 style={{ fontSize: 16, fontWeight: 700, color: '#fff', marginBottom: 4 }}>{item.t}</h4>
+                    <p style={{ fontSize: 14, color: '#64748b', lineHeight: 1.5 }}>{item.d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginTop: 40 }}>
+              <Link href="/blog/facturacion-electronica-dian-restaurantes" style={{ color: '#8b5cf6', fontWeight: 600, fontSize: 14, display: 'inline-flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+                Leer guía completa de cumplimiento DIAN <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+          <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: 32, padding: 40, position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: -20, right: -20, width: 200, height: 200, background: 'radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)', filter: 'blur(40px)' }}></div>
+            <ShieldCheck size={48} color="#8b5cf6" style={{ marginBottom: 24 }} />
+            <h3 style={{ fontSize: 24, fontWeight: 800, color: '#fff', marginBottom: 16 }}>Tu seguridad jurídica es nuestra prioridad</h3>
+            <p style={{ color: '#94a3b8', fontSize: 15, lineHeight: 1.6, marginBottom: 24 }}>
+              Evita sanciones por incumplimiento de facturación POS electrónica. Con RestoPOS, cada venta genera el soporte legal necesario para tu contabilidad.
+            </p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <li style={{ fontSize: 14, color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8b5cf6' }}></span>
+                Validación de NIT y RUT del emisor
+              </li>
+              <li style={{ fontSize: 14, color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8b5cf6' }}></span>
+                Control de prefijos y rangos autorizados
+              </li>
+              <li style={{ fontSize: 14, color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#8b5cf6' }}></span>
+                Envío automático de XML/PDF al cliente
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       {/* ── AUTORIDAD & CONFIANZA (EEAT - Authority & Trust) ── */}
       <section className="eeat-section">
         <div className="eeat-bg"></div>

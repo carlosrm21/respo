@@ -68,13 +68,24 @@ export async function POST(req: NextRequest) {
     const rawApiKey = body.apiKey?.includes('••') ? existingApiKey : (body.apiKey || '');
 
     const rows = [
-      { restaurante_id: tenantId, clave: 'fe_provider',     valor: body.provider      || '' },
-      { restaurante_id: tenantId, clave: 'fe_api_url',      valor: body.apiUrl        || '' },
-      { restaurante_id: tenantId, clave: 'fe_api_key',      valor: rawApiKey },
-      { restaurante_id: tenantId, clave: 'fe_nit',          valor: body.nit           || '' },
-      { restaurante_id: tenantId, clave: 'fe_razon_social', valor: body.razonSocial   || '' },
-      { restaurante_id: tenantId, clave: 'fe_regimen',      valor: body.regimen       || 'simplificado' },
-      { restaurante_id: tenantId, clave: 'fe_test_mode',    valor: body.testMode === false ? 'false' : 'true' },
+      { restaurante_id: tenantId, clave: 'fe_provider',        valor: body.provider       || '' },
+      { restaurante_id: tenantId, clave: 'fe_api_url',         valor: body.apiUrl         || '' },
+      { restaurante_id: tenantId, clave: 'fe_api_key',         valor: rawApiKey },
+      { restaurante_id: tenantId, clave: 'fe_nit',             valor: body.nit            || '' },
+      { restaurante_id: tenantId, clave: 'fe_razon_social',    valor: body.razonSocial    || '' },
+      { restaurante_id: tenantId, clave: 'fe_regimen',         valor: body.regimen        || 'simplificado' },
+      { restaurante_id: tenantId, clave: 'fe_test_mode',       valor: body.testMode === false ? 'false' : 'true' },
+      // Campos legales obligatorios Resolución DIAN 042/2020
+      { restaurante_id: tenantId, clave: 'fe_direccion',       valor: body.direccion      || '' },
+      { restaurante_id: tenantId, clave: 'fe_ciudad',          valor: body.ciudad         || '' },
+      { restaurante_id: tenantId, clave: 'fe_departamento',    valor: body.departamento   || '' },
+      { restaurante_id: tenantId, clave: 'fe_ciiu',            valor: body.ciiu           || '5611' }, // CIIU restaurantes
+      { restaurante_id: tenantId, clave: 'fe_email_dian',      valor: body.emailDian      || '' },
+      { restaurante_id: tenantId, clave: 'fe_tipo_contribuyente', valor: body.tipoContribuyente || 'persona_juridica' },
+      { restaurante_id: tenantId, clave: 'fe_prefijo',         valor: body.prefijo        || '' },
+      { restaurante_id: tenantId, clave: 'fe_rango_desde',     valor: String(body.rangoDesde || '1') },
+      { restaurante_id: tenantId, clave: 'fe_rango_hasta',     valor: String(body.rangoHasta || '1000') },
+      { restaurante_id: tenantId, clave: 'fe_habilitado_dian', valor: body.habilitadoDian ? 'true' : 'false' },
     ];
 
     const { error } = await supabase
