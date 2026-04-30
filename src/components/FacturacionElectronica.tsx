@@ -6,7 +6,7 @@ const PROVIDERS = [
   { id: 'factus',     name: 'Factus',      desc: 'PTH habilitado DIAN · Pymes',        docsUrl: 'https://factus.com.co/docs',                    apiUrlDefault: 'https://api.factus.com.co/v1' },
   { id: 'siigo',      name: 'Siigo',       desc: 'Contabilidad + FE · Líder Colombia',  docsUrl: 'https://siigodoc.online/api-facturacion',       apiUrlDefault: 'https://api.siigo.com/v1' },
   { id: 'alegra',     name: 'Alegra',      desc: 'Software contable · Pymes',           docsUrl: 'https://developer.alegra.com',                  apiUrlDefault: 'https://api.alegra.com/api/v1' },
-  { id: 'heifactura', name: 'Heifactura',  desc: 'Solo FE · Económico',                 docsUrl: 'https://heifactura.co',                         apiUrlDefault: 'https://api.heifactura.co/v1' },
+  { id: 'loggro',     name: 'Loggro',      desc: 'ERP + FE · Líder Colombia',           docsUrl: 'https://loggro.com',                            apiUrlDefault: 'https://api.loggro.com/v1' },
   { id: 'custom',     name: 'Otro PTH',    desc: 'Ingresa tu propio proveedor DIAN',    docsUrl: 'https://www.dian.gov.co/facturae/facturae/Paginas/Proveedores-Tecnol%C3%B3gicos.aspx', apiUrlDefault: '' },
 ];
 

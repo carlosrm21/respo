@@ -48,17 +48,17 @@ export default function DianDocs() {
       legal: 'Validación previa 100% en tiempo real obligatoria para cada transacción.'
     },
     { 
-      id: 'heifactura',
-      name: 'Heifactura', 
-      desc: 'Solución ágil enfocada a restaurantes y comercios.', 
-      url: 'https://heifactura.co',
+      id: 'loggro',
+      name: 'Loggro', 
+      desc: 'ERP + Facturación electrónica líder en Colombia.', 
+      url: 'https://loggro.com',
       steps: [
-        'Solicitar credenciales de integración comercial.',
-        'Configurar el endpoint de producción proporcionado.',
-        'Cargar el set de productos inicial vía archivo plano o API.',
-        'Activar el modo "Live" una vez superado el set de pruebas DIAN.'
+        'Obtener el API Token desde el módulo de configuración de Loggro.',
+        'Verificar que la resolución de facturación esté habilitada para API.',
+        'Configurar el Webhook de notificaciones en el dashboard de RestoPOS.',
+        'Realizar sincronización de catálogo de productos inicial.'
       ],
-      legal: 'Simplifica la gestión de CUFE y QR directamente en la tirilla de pago.'
+      legal: 'Loggro cumple íntegramente con la Resolución 042 de la DIAN para grandes operaciones.'
     },
   ];
 
