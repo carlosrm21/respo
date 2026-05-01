@@ -15,7 +15,8 @@ export async function getEstadoCaja() {
 export async function abrirCaja(monto: number, meseroId: number) {
     try {
         console.log('Attempting to open caja with monto:', monto, 'and meseroId:', meseroId);
-        const id = await abrirCajaData(monto, meseroId || null);
+        const resolvedMeseroId = meseroId === 0 ? null : (meseroId || null);
+        const id = await abrirCajaData(monto, resolvedMeseroId);
         console.log('Caja opened successfully, ID:', id);
         revalidatePath('/');
         return { success: true, id };
