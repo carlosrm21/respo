@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Wallet, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Wallet, X, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { getEstadoCaja, abrirCaja, cerrarCaja } from '@/app/actions/caja';
 
 export default function CajaControl({ onClose, isFullEmbed = false }: { onClose?: () => void, isFullEmbed?: boolean }) {
