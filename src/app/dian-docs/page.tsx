@@ -311,51 +311,68 @@ export default function DianDocs() {
                   Garantizamos que el documento XML cumple con todos los esquemas XSD y validaciones de la DIAN vigentes para el año 2024.
                 </p>
               </div>
-            </div>
+          {/* SECCIÓN DE STACK DE PROVEEDORES (ESTILO TECH STACK) */}
+        <section className="doc-section" style={{ marginBottom: 100 }}>
+          <div style={{ textAlign: 'center', marginBottom: 60 }}>
+            <h2 style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: 800, color: '#f8fafc', marginBottom: 16, letterSpacing: '-0.02em' }}>
+              INTEGRA CON TUS PROVEEDORES FAVORITOS
+            </h2>
+            <p style={{ color: '#94a3b8', fontSize: 16, maxWidth: 700, margin: '0 auto', lineHeight: 1.6 }}>
+              RestoPOS es el <strong>Software de Gestión</strong> que centraliza tu operación y se comunica de forma nativa con los Proveedores Tecnológicos Habilitados (PTH) más importantes de Colombia.
+            </p>
+            <div style={{ width: 60, height: 4, background: '#eab308', margin: '30px auto 0', borderRadius: 2 }}></div>
           </div>
-        </section>
 
-        {/* 1. SELECCIONA PROVEEDOR */}
-        <section className="doc-section">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-            <div style={{ width: 32, height: 32, background: '#8b5cf6', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 900 }}>1</div>
-            <h2 style={{ margin: 0 }}>Proveedores Tecnológicos</h2>
-          </div>
-          <div className="provider-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 24, justifyContent: 'center' }}>
             {providers.map((p) => (
               <div 
                 key={p.id} 
-                className={`provider-card ${selectedProvider === p.id ? 'active' : ''}`}
                 onClick={() => {
                   setSelectedProvider(p.id);
                   trackCampaignEvent('dian_provider_selected', { provider: p.id });
+                  document.getElementById('detail-section')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                style={{ 
+                  background: '#fff', 
+                  borderRadius: 24, 
+                  padding: '40px 20px', 
+                  textAlign: 'center', 
+                  cursor: 'pointer',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: selectedProvider === p.id ? '0 20px 40px rgba(139, 92, 246, 0.2)' : '0 10px 20px rgba(0,0,0,0.1)',
+                  transform: selectedProvider === p.id ? 'scale(1.05) translateY(-10px)' : 'scale(1)',
+                  border: selectedProvider === p.id ? '3px solid #8b5cf6' : '3px solid transparent'
+                }}
+                onMouseOver={(e) => {
+                  if (selectedProvider !== p.id) {
+                    e.currentTarget.style.transform = 'translateY(-10px)';
+                    e.currentTarget.style.boxShadow = '0 20px 30px rgba(0,0,0,0.15)';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (selectedProvider !== p.id) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
+                  }
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{p.name}</h3>
-                  <Building2 size={20} color="#8b5cf6" />
+                <div style={{ marginBottom: 16, fontSize: 32, fontWeight: 900, color: '#1e1e2d', letterSpacing: '-0.05em' }}>
+                  {p.name === 'Factus (DIAN)' ? 'FACTUS' : p.name.toUpperCase()}
                 </div>
-                <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, flex: 1 }}>{p.desc}</p>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
-                  <div className="btn-link btn-link-internal" style={{ border: selectedProvider === p.id ? '1px solid #8b5cf6' : '' }}>
-                    <BookOpen size={14} /> {selectedProvider === p.id ? 'Viendo Guía Interna' : 'Ver Guía de Integración'}
-                  </div>
-                  <a 
-                    href={p.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="btn-link btn-link-external"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      trackCampaignEvent('dian_external_docs_click', { provider: p.id });
-                    }} 
-                  >
-                    <ExternalLink size={14} /> Sitio Oficial API
-                  </a>
+                <div style={{ fontSize: 11, fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                  Proveedor PTH
                 </div>
               </div>
             ))}
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginTop: 40 }}>
+            {/* Logos adicionales de plataformas si hubiera mas */}
+            <div style={{ display: 'flex', gap: 12, opacity: 0.4, filter: 'grayscale(1)' }}>
+              <div style={{ background: '#fff', padding: '10px 20px', borderRadius: 12, fontSize: 12, fontWeight: 700, color: '#000' }}>SIIGO</div>
+              <div style={{ background: '#fff', padding: '10px 20px', borderRadius: 12, fontSize: 12, fontWeight: 700, color: '#000' }}>ALEGRA</div>
+              <div style={{ background: '#fff', padding: '10px 20px', borderRadius: 12, fontSize: 12, fontWeight: 700, color: '#000' }}>LOGGRO</div>
+            </div>
           </div>
         </section>
 
