@@ -32,9 +32,30 @@ interface Props {
   activeSection: string;
   onSectionChange: (s: string) => void;
   onLogout: () => void;
+  plan?: string;
 }
 
-export default function AdminSidebar({ activeSection, onSectionChange, onLogout }: Props) {
+export default function AdminSidebar({ activeSection, onSectionChange, onLogout, plan = 'Pro' }: Props) {
+  const normalizedPlan = plan?.toLowerCase() || 'pro';
+  const isProPlus = normalizedPlan.includes('plus') || normalizedPlan.includes('enterprise') || normalizedPlan.includes('annual');
+  const isEnterprise = normalizedPlan.includes('enterprise');
+
+  // Filter items based on plan
+  const visibleNavItems = navItems.filter(item => {
+    if (item.id === 'inventory') return isProPlus;
+    if (item.id === 'staff') return isEnterprise;
+    return true;
+  });
+
+  const visibleOpItems = opItems.filter(item => {
+    if (['reservas', 'auditoria', 'turnos', 'pl', 'delivery'].includes(item.id)) return isEnterprise;
+    return true;
+  });
+
+  const visibleConfigItems = configItems.filter(item => {
+    if (item.id === 'fe') return isProPlus;
+    return true;
+  });
   return (
     <aside style={{ width: 224, background: 'var(--surface)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', height: '100vh', flexShrink: 0 }}>
       {/* Logo */}
@@ -53,7 +74,7 @@ export default function AdminSidebar({ activeSection, onSectionChange, onLogout 
         <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '8px 8px 6px' }}>
           Gestión
         </div>
-        {navItems.map(item => {
+        {visibleNavItems.map(item => {
           const active = activeSection === item.id;
           return (
             <button
@@ -80,7 +101,7 @@ export default function AdminSidebar({ activeSection, onSectionChange, onLogout 
         <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '12px 8px 6px' }}>
           Operaciones
         </div>
-        {opItems.map(item => {
+        {visibleOpItems.map(item => {
           const active = activeSection === item.id;
           return (
             <button
@@ -107,7 +128,7 @@ export default function AdminSidebar({ activeSection, onSectionChange, onLogout 
         <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '0.06em', textTransform: 'uppercase', padding: '12px 8px 6px' }}>
           Configuración
         </div>
-        {configItems.map(item => {
+        {visibleConfigItems.map(item => {
           if (item.href) {
             return (
               <a

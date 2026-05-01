@@ -51,7 +51,7 @@ const SECTION_LABELS: Record<string, string> = {
   ticket: 'Configuración Ticket POS',
 };
 
-export default function HomeClient({ mesas, productos }: { mesas: any[], productos: any[] }) {
+export default function HomeClient({ mesas, productos, license }: { mesas: any[], productos: any[], license?: any }) {
   const [role, setRole] = useState<'admin' | 'waiter' | 'kitchen' | null>(null);
   const [section, setSection] = useState('dashboard');
   const [selectedMesa, setSelectedMesa] = useState<any | null>(null);
@@ -344,7 +344,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
       <div className="app-layout">
         {licenseBannerEl}
         {!isMobile ? (
-          <AdminSidebar activeSection={section} onSectionChange={handleAdminSectionChange} onLogout={() => setRole(null)} />
+          <AdminSidebar activeSection={section} onSectionChange={handleAdminSectionChange} onLogout={() => setRole(null)} plan={license?.plan} />
         ) : (
           <>
             {adminNavOpen && (
@@ -373,6 +373,7 @@ export default function HomeClient({ mesas, productos }: { mesas: any[], product
                   setAdminNavOpen(false);
                   setRole(null);
                 }}
+                plan={license?.plan}
               />
             </div>
           </>

@@ -28,13 +28,14 @@ export default async function PosPage() {
       // Ignorar
     }
 
+    let license: any = null;
     try {
-      await getLicenseStatus();
+      license = await getLicenseStatus();
     } catch (e) {
       // Login bloqueará
     }
 
-    return <HomeClient mesas={mesas} productos={productos} />;
+    return <HomeClient mesas={mesas} productos={productos} license={license} />;
   } catch (err: any) {
     if (err.message === 'TENANT_MISSING') {
       redirect('/');
