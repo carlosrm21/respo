@@ -246,8 +246,8 @@ export default function DianDocs() {
 
               {/* Paso 1: RestoPOS */}
               <div className="node-pulse" style={{ textAlign: 'center', width: 160, zIndex: 1 }}>
-                <div style={{ width: 85, height: 85, background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05))', border: '2px solid #8b5cf6', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', transition: 'transform 0.3s' }}>
-                  <Terminal color="#a78bfa" size={36} />
+                <div style={{ width: 85, height: 85, background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05))', border: '2px solid #8b5cf6', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', transition: 'transform 0.3s', padding: 15 }}>
+                  <img src="/logo.png" alt="RestoPOS" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
                 <div style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.05em' }}>RestoPOS</div>
                 <div style={{ background: '#8b5cf6', color: '#fff', fontSize: 10, padding: '3px 10px', borderRadius: 99, display: 'inline-block', fontWeight: 700, marginBottom: 12 }}>INTEGRADOR</div>
