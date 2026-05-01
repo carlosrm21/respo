@@ -14,11 +14,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   icons: {
     icon: [
-      { url: '/logo.png', type: 'image/png' }
+      { url: '/logo.png?v=1', type: 'image/png' }
     ],
-    shortcut: ['/logo.png'],
+    shortcut: ['/logo.png?v=1'],
     apple: [
-      { url: '/logo.png' }
+      { url: '/logo.png?v=1' }
     ]
   },
   alternates: {
@@ -92,9 +92,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="es">
       <head>
-        <link rel="icon" href="/logo.png" type="image/png" />
-        <link rel="shortcut icon" href="/logo.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="icon" href="/logo.png?v=1" type="image/png" />
+        <link rel="shortcut icon" href="/logo.png?v=1" type="image/png" />
+        <link rel="apple-touch-icon" href="/logo.png?v=1" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#6366f1" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
