@@ -175,6 +175,21 @@ export default function DianDocs() {
         }
         .back-link:hover { color: #f8fafc; }
 
+        @keyframes flow {
+          0% { stroke-dashoffset: 24; }
+          100% { stroke-dashoffset: 0; }
+        }
+        @keyframes pulse-purple {
+          0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); }
+          50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.4); }
+        }
+        .flow-line {
+          stroke-dasharray: 8;
+          animation: flow 1s linear infinite;
+        }
+        .node-pulse {
+          animation: pulse-purple 3s ease-in-out infinite;
+        }
         @media (max-width: 768px) { .glass-card { padding: 24px; } .provider-grid { grid-template-columns: 1fr; } }
       `}</style>
 
@@ -221,81 +236,80 @@ export default function DianDocs() {
             </p>
           </div>
 
-          <div className="glass-card" style={{ padding: '60px 40px', overflowX: 'auto' }}>
-            <div style={{ minWidth: 800, display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
+          <div className="glass-card" style={{ padding: '80px 40px', position: 'relative' }}>
+            <div style={{ minWidth: 800, display: 'flex', justifyContent: 'space-between', position: 'relative', zIndex: 10 }}>
               
-              {/* Línea conectora de fondo */}
-              <div style={{ position: 'absolute', top: 40, left: '10%', right: '10%', height: 2, background: 'linear-gradient(90deg, #8b5cf6 0%, #3b82f6 50%, #10b981 100%)', opacity: 0.2, zIndex: 0 }}></div>
+              {/* SVG de fondo para líneas animadas */}
+              <svg style={{ position: 'absolute', top: 40, left: '10%', width: '80%', height: 2, overflow: 'visible', zIndex: 0 }}>
+                <line x1="0" y1="0" x2="100%" y2="0" stroke="rgba(139, 92, 246, 0.3)" strokeWidth="2" className="flow-line" />
+              </svg>
 
               {/* Paso 1: RestoPOS */}
-              <div style={{ zIndex: 1, textAlign: 'center', width: 160 }}>
-                <div style={{ width: 80, height: 80, background: 'rgba(139, 92, 246, 0.1)', border: '2px solid #8b5cf6', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 0 30px rgba(139, 92, 246, 0.2)' }}>
-                  <Terminal color="#8b5cf6" size={32} />
+              <div className="node-pulse" style={{ textAlign: 'center', width: 160, zIndex: 1 }}>
+                <div style={{ width: 85, height: 85, background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05))', border: '2px solid #8b5cf6', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', transition: 'transform 0.3s' }}>
+                  <Terminal color="#a78bfa" size={36} />
                 </div>
-                <div style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', textTransform: 'uppercase', marginBottom: 8 }}>RestoPOS</div>
-                <div style={{ background: '#8b5cf6', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 99, display: 'inline-block', marginBottom: 12 }}>INTEGRADOR</div>
-                <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Genera solicitud <strong>JSON</strong> de venta</p>
-              </div>
-
-              {/* Flecha 1 */}
-              <div style={{ alignSelf: 'center', marginTop: -40, color: '#8b5cf6', opacity: 0.5 }}>
-                <Zap size={24} />
+                <div style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.05em' }}>RestoPOS</div>
+                <div style={{ background: '#8b5cf6', color: '#fff', fontSize: 10, padding: '3px 10px', borderRadius: 99, display: 'inline-block', fontWeight: 700, marginBottom: 12 }}>INTEGRADOR</div>
+                <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>Solicitud <strong>JSON</strong> de factura</p>
               </div>
 
               {/* Paso 2: PTH */}
-              <div style={{ zIndex: 1, textAlign: 'center', width: 160 }}>
-                <div style={{ width: 80, height: 80, background: 'rgba(59, 130, 246, 0.1)', border: '2px solid #3b82f6', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 0 30px rgba(59, 130, 246, 0.2)' }}>
-                  <Building2 color="#3b82f6" size={32} />
+              <div style={{ textAlign: 'center', width: 160, zIndex: 1 }}>
+                <div style={{ width: 85, height: 85, background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(59, 130, 246, 0.05))', border: '2px solid #3b82f6', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                  <Building2 color="#60a5fa" size={36} />
                 </div>
-                <div style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', textTransform: 'uppercase', marginBottom: 8 }}>PTH (SaaS/API)</div>
-                <div style={{ background: '#3b82f6', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 99, display: 'inline-block', marginBottom: 12 }}>PROVEEDOR</div>
-                <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Firma y genera <strong>XML</strong> normativo</p>
-              </div>
-
-              {/* Flecha 2 */}
-              <div style={{ alignSelf: 'center', marginTop: -40, color: '#3b82f6', opacity: 0.5 }}>
-                <Zap size={24} />
+                <div style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.05em' }}>Factus / Siigo / Alegra</div>
+                <div style={{ background: '#3b82f6', color: '#fff', fontSize: 10, padding: '3px 10px', borderRadius: 99, display: 'inline-block', fontWeight: 700, marginBottom: 12 }}>PROVEEDOR (PTH)</div>
+                <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>Firma Digital y <strong>XML</strong></p>
               </div>
 
               {/* Paso 3: DIAN */}
-              <div style={{ zIndex: 1, textAlign: 'center', width: 160 }}>
-                <div style={{ width: 80, height: 80, background: 'rgba(16, 185, 129, 0.1)', border: '2px solid #10b981', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', boxShadow: '0 0 30px rgba(16, 185, 129, 0.2)' }}>
-                  <img src="https://www.dian.gov.co/Imagenes/Logos/LogoDIAN.png" alt="DIAN" style={{ width: '70%', filter: 'brightness(0) invert(1)' }} />
+              <div style={{ textAlign: 'center', width: 160, zIndex: 1 }}>
+                <div style={{ width: 85, height: 85, background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.05))', border: '2px solid #10b981', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                  <ShieldCheck color="#34d399" size={36} />
                 </div>
-                <div style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', textTransform: 'uppercase', marginBottom: 8 }}>DIAN</div>
-                <div style={{ background: '#10b981', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 99, display: 'inline-block', marginBottom: 12 }}>AUTORIDAD</div>
-                <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Validación previa y <strong>CUFE</strong></p>
-              </div>
-
-              {/* Flecha 3 */}
-              <div style={{ alignSelf: 'center', marginTop: -40, color: '#10b981', opacity: 0.5 }}>
-                <CheckCircle2 size={24} />
+                <div style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.05em' }}>DIAN</div>
+                <div style={{ background: '#10b981', color: '#fff', fontSize: 10, padding: '3px 10px', borderRadius: 99, display: 'inline-block', fontWeight: 700, marginBottom: 12 }}>AUTORIDAD</div>
+                <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>Validación y <strong>CUFE</strong></p>
               </div>
 
               {/* Paso 4: Cliente */}
-              <div style={{ zIndex: 1, textAlign: 'center', width: 160 }}>
-                <div style={{ width: 80, height: 80, background: 'rgba(248, 250, 252, 0.05)', border: '2px solid #f8fafc', borderRadius: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
-                  <Globe color="#f8fafc" size={32} />
+              <div style={{ textAlign: 'center', width: 160, zIndex: 1 }}>
+                <div style={{ width: 85, height: 85, background: 'rgba(255, 255, 255, 0.05)', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
+                  <Globe color="#f8fafc" size={36} />
                 </div>
-                <div style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', textTransform: 'uppercase', marginBottom: 8 }}>Adquiriente</div>
-                <div style={{ background: '#64748b', color: '#fff', fontSize: 10, padding: '2px 8px', borderRadius: 99, display: 'inline-block', marginBottom: 12 }}>FINAL</div>
-                <p style={{ fontSize: 11, color: '#64748b', margin: 0 }}>Recibe <strong>PDF + XML</strong> por Email</p>
+                <div style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.05em' }}>Cliente Final</div>
+                <div style={{ background: 'rgba(255,255,255,0.1)', color: '#f8fafc', fontSize: 10, padding: '3px 10px', borderRadius: 99, display: 'inline-block', fontWeight: 700, marginBottom: 12 }}>DESTINO</div>
+                <p style={{ fontSize: 12, color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>Email con <strong>PDF + XML</strong></p>
               </div>
 
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginTop: 60, paddingTop: 40, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-              <div style={{ fontSize: 12, color: '#94a3b8' }}>
-                <strong style={{ color: '#f8fafc', display: 'block', marginBottom: 4 }}>1. Comunicación Síncrona</strong>
-                RestoPOS envía la data de la factura en milisegundos vía API REST al proveedor elegido.
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 32, marginTop: 80, paddingTop: 40, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <div style={{ background: 'rgba(255,255,255,0.02)', padding: 24, borderRadius: 20, border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ color: '#8b5cf6', fontWeight: 800, fontSize: 11, textTransform: 'uppercase', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                   <Zap size={14} /> Latencia Ultra-Baja
+                </div>
+                <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, lineHeight: 1.6 }}>
+                  La comunicación entre RestoPOS y el PTH ocurre en menos de <strong>300ms</strong>, garantizando que la factura esté lista antes de que el cliente se levante de la mesa.
+                </p>
               </div>
-              <div style={{ fontSize: 12, color: '#94a3b8' }}>
-                <strong style={{ color: '#f8fafc', display: 'block', marginBottom: 4 }}>2. Firma Digital</strong>
-                El PTH aplica tu certificado digital para garantizar la integridad legal del documento.
+              <div style={{ background: 'rgba(255,255,255,0.02)', padding: 24, borderRadius: 20, border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ color: '#3b82f6', fontWeight: 800, fontSize: 11, textTransform: 'uppercase', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                   <Settings size={14} /> Firma Delegada
+                </div>
+                <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, lineHeight: 1.6 }}>
+                  El Proveedor Tecnológico aplica la firma electrónica de forma automática, eliminando la necesidad de gestionar certificados locales complejos.
+                </p>
               </div>
-              <div style={{ fontSize: 12, color: '#94a3b8' }}>
-                <strong style={{ color: '#f8fafc', display: 'block', marginBottom: 4 }}>3. Respuesta Inmediata</strong>
-                Si la DIAN aprueba, RestoPOS recibe el código QR y la URL del documento legal.
+              <div style={{ background: 'rgba(255,255,255,0.02)', padding: 24, borderRadius: 20, border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ color: '#10b981', fontWeight: 800, fontSize: 11, textTransform: 'uppercase', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
+                   <ShieldCheck size={14} /> Cumplimiento Res. 042
+                </div>
+                <p style={{ fontSize: 13, color: '#94a3b8', margin: 0, lineHeight: 1.6 }}>
+                  Garantizamos que el documento XML cumple con todos los esquemas XSD y validaciones de la DIAN vigentes para el año 2024.
+                </p>
               </div>
             </div>
           </div>
