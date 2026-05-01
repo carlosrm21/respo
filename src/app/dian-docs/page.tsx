@@ -311,7 +311,22 @@ export default function DianDocs() {
                   Garantizamos que el documento XML cumple con todos los esquemas XSD y validaciones de la DIAN vigentes para el año 2024.
                 </p>
               </div>
-          {/* SECCIÓN DE STACK DE PROVEEDORES (ESTILO TECH STACK) */}
+            </div>
+
+            <div style={{ marginTop: 40, padding: '30px', background: 'rgba(234, 179, 8, 0.05)', border: '1px solid rgba(234, 179, 8, 0.2)', borderRadius: '24px', display: 'flex', gap: 20, alignItems: 'center' }}>
+              <div style={{ width: 60, height: 60, background: 'rgba(234, 179, 8, 0.1)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Zap color="#eab308" size={30} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h4 style={{ color: '#eab308', fontSize: 18, fontWeight: 800, margin: '0 0 4px 0' }}>¿Portal de la DIAN inestable?</h4>
+                <p style={{ color: '#94a3b8', fontSize: 14, margin: 0, lineHeight: 1.5 }}>
+                  RestoPOS garantiza la **continuidad del negocio**. Si la DIAN presenta caídas, nuestro sistema encola tus documentos y los procesa automáticamente. <strong>Tu restaurante nunca se detiene.</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="doc-section" style={{ marginBottom: 100 }}>
           <div style={{ textAlign: 'center', marginBottom: 60 }}>
             <h2 style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: 800, color: '#f8fafc', marginBottom: 16, letterSpacing: '-0.02em' }}>
@@ -522,7 +537,7 @@ Auth: Bearer {YOUR_TOKEN}
             </div>
             <div style={{ textAlign: 'right' }}>
               <p style={{ color: '#64748b', fontSize: 13, margin: 0 }}>© {new Date().getFullYear()} RestoPOS SaaS.</p>
-              <p style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>Bogotá, Colombia</p>
+              <p style={{ color: '#64748b', fontSize: 12, marginTop: 4 }}>Cali, Colombia</p>
             </div>
           </div>
         </footer>
