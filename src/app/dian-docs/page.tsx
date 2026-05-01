@@ -246,8 +246,8 @@ export default function DianDocs() {
 
               {/* Paso 1: RestoPOS */}
               <div className="node-pulse" style={{ textAlign: 'center', width: 160, zIndex: 1 }}>
-                <div style={{ width: 85, height: 85, background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(139, 92, 246, 0.1))', border: '2px solid #8b5cf6', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', transition: 'transform 0.3s', padding: 10, overflow: 'hidden' }}>
-                  <img src="/logo.png?v=99" alt="RestoPOS" style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }} />
+                <div style={{ width: 90, height: 90, background: 'transparent', border: 'none', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', transition: 'transform 0.3s', overflow: 'hidden' }}>
+                  <img src="/logo.png?v=100" alt="RestoPOS" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'drop-shadow(0 0 10px rgba(139, 92, 246, 0.3))' }} />
                 </div>
                 <div style={{ fontWeight: 800, fontSize: 13, color: '#f8fafc', textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.05em' }}>RestoPOS</div>
                 <div style={{ background: '#8b5cf6', color: '#fff', fontSize: 10, padding: '4px 12px', borderRadius: 99, display: 'inline-block', fontWeight: 800, marginBottom: 12 }}>SOFTWARE POS</div>
