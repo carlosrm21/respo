@@ -15,6 +15,7 @@ const ESTADO_CONFIG: Record<string, { label: string; color: string }> = {
 
 export default function DeliveryPanel() {
   const [pedidos, setPedidos] = useState<any[]>([]);
+  const [webhookUrl, setWebhookUrl] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -23,6 +24,11 @@ export default function DeliveryPanel() {
       const res = await fetch('/api/delivery');
       const data = await res.json();
       if (data.success) setPedidos(data.data);
+
+      // Fetch webhook config
+      const cRes = await fetch('/api/delivery/config');
+      const cData = await cRes.json();
+      if (cData.success) setWebhookUrl(cData.webhookUrl);
     } catch {}
     setLoading(false);
   }, []);
@@ -41,12 +47,24 @@ export default function DeliveryPanel() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-        <div>
-          <p style={{ fontSize: 13, color: 'var(--text-2)' }}>Pedidos recibidos de plataformas externas. Webhook URL:</p>
-          <code style={{ fontSize: 12, background: 'var(--surface-2)', border: '1px solid var(--border)', padding: '4px 10px', borderRadius: 8, display: 'inline-block', marginTop: 4, color: 'var(--accent-hover)' }}>
-            POST {typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/delivery
-          </code>
-          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>Header: <code>x-platform: rappi</code> | Body: {'{'} order_id, cliente, direccion, items[], total {'}'}</p>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 13, color: 'var(--text-2)' }}>Configuración de Webhook (Rappi / iFood / Integraciones):</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 6 }}>
+            <code style={{ fontSize: 12, background: 'var(--surface-2)', border: '1px solid var(--border)', padding: '6px 12px', borderRadius: 8, color: 'var(--accent-hover)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', flex: 1 }}>
+              POST {webhookUrl || 'Cargando URL...'}
+            </code>
+            {webhookUrl && (
+              <button 
+                onClick={() => { navigator.clipboard.writeText(webhookUrl); alert('URL copiada al portapapeles'); }}
+                style={{ padding: '6px 12px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 11, cursor: 'pointer', color: 'var(--text-2)' }}
+              >
+                Copiar URL
+              </button>
+            )}
+          </div>
+          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 8 }}>
+            <strong>Headers:</strong> <code>x-platform: rappi</code> | <strong>Body (JSON):</strong> <code>{'{'} "order_id": "123", "cliente": "Nombre", "direccion": "...", "items": [...], "total": 0 {'}'}</code>
+          </p>
         </div>
         <button onClick={load} style={{ padding: '7px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, cursor: 'pointer', color: 'var(--text-3)' }}>
           <RefreshCw size={14} />
