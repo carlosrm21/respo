@@ -19,12 +19,21 @@ export const metadata: Metadata = {
     title: 'Control de inventario para restaurantes sin perder margen | 7 Días Gratis',
     description: 'Practicas para reducir mermas, mejorar compras y proteger rentabilidad con tecnologia. Empieza tu trial de 7 días.',
     url: `${siteUrl}/blog/control-inventario-restaurantes`,
-    type: 'article'
+    type: 'article',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Inventario Restaurantes'
+      }
+    ]
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Control de inventario para restaurantes | 7 Días de Prueba',
-    description: 'Guia practica para controlar stock, mermas y margen en restaurantes. Prueba nuestro software ahora.'
+    description: 'Guia practica para controlar stock, mermas y margen en restaurantes. Prueba nuestro software ahora.',
+    images: ['/logo.png']
   }
 };
 

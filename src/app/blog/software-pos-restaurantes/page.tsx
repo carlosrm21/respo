@@ -20,12 +20,21 @@ export const metadata: Metadata = {
     title: 'Software POS para restaurantes: que debe tener en 2026',
     description: 'Checklist tecnico y operativo para elegir un software POS rentable y escalable en Colombia.',
     url: `${siteUrl}/blog/software-pos-restaurantes`,
-    type: 'article'
+    type: 'article',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Software POS 2026'
+      }
+    ]
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Software POS para restaurantes: que debe tener en 2026',
-    description: 'Checklist practico para elegir un POS con DIAN, KDS, inventario y analiticas.'
+    description: 'Checklist practico para elegir un POS con DIAN, KDS, inventario y analiticas.',
+    images: ['/logo.png']
   }
 };
 

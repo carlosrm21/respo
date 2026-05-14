@@ -20,7 +20,15 @@ export const metadata: Metadata = {
     title: 'Blog de Gestion para Restaurantes | RestoPOS',
     description: 'Contenido practico sobre POS, DIAN, inventario y crecimiento para restaurantes en Colombia.',
     url: `${siteUrl}/blog`,
-    type: 'website'
+    type: 'website',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Blog RestoPOS'
+      }
+    ]
   },
   twitter: {
     card: 'summary_large_image',

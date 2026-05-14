@@ -19,12 +19,21 @@ export const metadata: Metadata = {
     title: 'Facturacion electronica DIAN para restaurantes: guia rapida',
     description: 'Implementa DIAN en tu restaurante con menos errores y mejor trazabilidad operativa.',
     url: `${siteUrl}/blog/facturacion-electronica-dian-restaurantes`,
-    type: 'article'
+    type: 'article',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'DIAN Restaurantes'
+      }
+    ]
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Facturacion electronica DIAN para restaurantes',
-    description: 'Guia rapida de implementacion DIAN integrada al POS.'
+    description: 'Guia rapida de implementacion DIAN integrada al POS.',
+    images: ['/logo.png']
   }
 };
 

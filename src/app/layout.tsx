@@ -21,12 +21,9 @@ export const metadata: Metadata = {
       { url: '/logo.png?v=1' }
     ]
   },
-  alternates: {
-    canonical: '/'
-  },
   title: {
-    default: 'Sistema POS para Restaurantes | RestoPOS MOVILCOMTS',
-    template: '%s | RestoPOS MOVILCOMTS'
+    default: 'Software POS para Restaurantes en Colombia | RestoPOS',
+    template: '%s | RestoPOS'
   },
   description: 'Aumenta tus ventas y controla tu inventario con RestoPOS. Sistema POS intuitivo en Colombia con KDS, mapas de mesas y Facturación Electrónica DIAN integrada.',
   applicationName: 'RestoPOS',

@@ -142,66 +142,6 @@ export default function LandingUI() {
     { q: "¿Es funcional si se interrumpe mi wifi local?", a: "La administración es un SaaS en la nube con altos niveles de uptime. Garantizamos robustez tecnológica." }
   ];
 
-  // JSON-LD Schema para Google
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "SoftwareApplication",
-        "name": "RestoPOS",
-        "applicationCategory": "BusinessApplication",
-        "operatingSystem": "Web, iOS, Android",
-        "description": "Sistema de Punto de Venta (POS) para restaurantes con Facturación Electrónica DIAN, control de mesas, inventario y KDS.",
-        "url": "https://restopos.movilcomts.com",
-        "offers": {
-          "@type": "Offer",
-          "price": "49900",
-          "priceCurrency": "COP",
-          "priceValidUntil": "2027-12-31",
-          "description": "Incluye 14 días de prueba gratis. Suscripción mensual desde $49.900 COP."
-        },
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "5",
-          "reviewCount": "3"
-        }
-      },
-      {
-        "@type": "Organization",
-        "name": "Movilcom Tecnology Solution",
-        "url": "https://www.movilcomts.com",
-        "logo": "https://restopos.movilcomts.com/logo.png",
-        "contactPoint": [
-          {
-            "@type": "ContactPoint",
-            "contactType": "sales",
-            "telephone": "+57 3242877331",
-            "availableLanguage": ["Spanish"],
-            "areaServed": "CO",
-            "url": "https://wa.me/573242877331"
-          }
-        ]
-      },
-      {
-        "@type": "WebSite",
-        "name": "RestoPOS",
-        "url": "https://restopos.movilcomts.com",
-        "inLanguage": "es-CO"
-      },
-      {
-        "@type": "FAQPage",
-        "mainEntity": faqs.map((faq) => ({
-          "@type": "Question",
-          "name": faq.q,
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": faq.a
-          }
-        }))
-      }
-    ]
-  };
-
 
   return (
     <main style={{
@@ -211,12 +151,6 @@ export default function LandingUI() {
       color: '#ffffff',
       overflowX: 'hidden'
     }}>
-      {/* JSON-LD para Google */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
       <style>{`
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #09090b; }
@@ -463,7 +397,7 @@ export default function LandingUI() {
         </div>
         <div className="hero-visual">
           <div className="hero-mockup-wrapper">
-            <Image src="/preview-analytics.png" alt="RestoPOS Analytics Dashboard" width={800} height={600} style={{ width: '100%', height: 'auto', display: 'block' }} priority />
+            <Image src="/preview-analytics.png" alt="RestoPOS Analytics Dashboard" width={800} height={600} style={{ width: '100%', height: 'auto', display: 'block' }} priority fetchPriority="high" />
           </div>
         </div>
       </header>

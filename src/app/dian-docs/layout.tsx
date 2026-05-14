@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://restopos.movilcomts.com';
 
 export const metadata: Metadata = {
-  title: 'Integración DIAN para Restaurantes | RestoPOS (Prueba 7 Días)',
+  title: 'Facturación Electrónica DIAN | RestoPOS',
   description: 'Guía técnica para integrar facturación electrónica DIAN en RestoPOS con proveedores como Siigo, Alegra y Factus. Empieza con 7 días de prueba.',
   keywords: [
     'integracion DIAN',
@@ -22,7 +22,15 @@ export const metadata: Metadata = {
     url: `${siteUrl}/dian-docs`,
     siteName: 'RestoPOS',
     locale: 'es_CO',
-    type: 'website'
+    type: 'website',
+    images: [
+      {
+        url: '/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Integración DIAN RestoPOS'
+      }
+    ]
   },
   twitter: {
     card: 'summary',
